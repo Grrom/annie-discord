@@ -44,26 +44,29 @@ async def on_message(message):
 
         if "sauce" in message.content:
             try:
-                sauce = await get_sauce(message.attachments[0].url)
+                if not message.attachments:
+                    await message.channel.send("Please include an anime screenshot.")
+                else:
+                    sauce = await get_sauce(message.attachments[0].url)
 
-                embed = discord.Embed(
-                    title="✅ Sauce Found!",
-                    color=discord.Color.yellow()
-                )
-                embed.set_thumbnail(url=sauce["thumbnail"])
-                embed.add_field(
-                    name="Title", value=sauce["title"] or "unknown", inline=True)
-                embed.add_field(name="Accuracy",
-                                value=f"{sauce['accuracy']}%", inline=True)
-                embed.add_field(
-                    name="Source", value=sauce["link"] or "link not available", inline=False)
-
-                await message.channel.send(embed=embed)
-
-                if sauce['accuracy'] < 60:
-                    await message.channel.send(
-                        "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
+                    embed = discord.Embed(
+                        title="✅ Sauce Found!",
+                        color=discord.Color.yellow()
                     )
+                    embed.set_thumbnail(url=sauce["thumbnail"])
+                    embed.add_field(
+                        name="Title", value=sauce["title"] or "unknown", inline=True)
+                    embed.add_field(name="Accuracy",
+                                    value=f"{sauce['accuracy']}%", inline=True)
+                    embed.add_field(
+                        name="Source", value=sauce["link"] or "link not available", inline=False)
+
+                    await message.channel.send(embed=embed)
+
+                    if sauce['accuracy'] < 60:
+                        await message.channel.send(
+                            "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
+                        )
 
             except Exception as exception:
                 await message.channel.send(str(exception))
