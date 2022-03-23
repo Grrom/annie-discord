@@ -10,9 +10,10 @@ load_dotenv()
 client = discord.Client()
 
 
-async def get_sauce():
+async def get_sauce(image_url):
     try:
-        response = requests.get("http://localhost:8080/sauce")
+        response = requests.get(
+            f"http://localhost:8080/sauce?image_url={image_url}")
         if response.status_code == 200:
             return response.json()
         raise Exception("Sorry I couldn't find the sauce for that image.")
@@ -41,27 +42,35 @@ async def on_message(message):
             await message.channel.send("hello there!")
             return
 
-        if "test" in message.content:
+        if "sauce" in message.content:
             try:
-                sauce = await get_sauce()
+                sauce = await get_sauce(message.attachments[0].url)
+
                 embed = discord.Embed(
                     title="✅ Sauce Found!",
                     color=discord.Color.yellow()
                 )
-                embed.set_thumbnail(
-                    url="https://raw.githubusercontent.com/Grrom/my_wallpapers/main/mylofi.png")
-                embed.add_field(name="Database",
-                                value=sauce["database"], inline=True)
+                embed.set_thumbnail(url=sauce["thumbnail"])
+                embed.add_field(
+                    name="Title", value=sauce["title"] or "unknown", inline=True)
                 embed.add_field(name="Accuracy",
                                 value=f"{sauce['accuracy']}%", inline=True)
                 embed.add_field(
-                    name="Author", value=sauce["author"], inline=True)
-                embed.add_field(
-                    name="Title", value=sauce["title"], inline=True)
+                    name="Source", value=sauce["link"] or "link not available", inline=False)
 
                 await message.channel.send(embed=embed)
+
+                if sauce['accuracy'] < 60:
+                    await message.channel.send(
+                        "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
+                    )
+
             except Exception as exception:
                 await message.channel.send(str(exception))
+        if "pic" in message.content:
+            print(message.attachments[0].url)
+            await message.channel.send("test")
+            return
 
     elif "<@!955202644702556260>" in message.content:
         await message.channel.send("I have no Idea what you're talking about")
