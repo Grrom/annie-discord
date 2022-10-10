@@ -7,8 +7,8 @@ from utils import saucenao
 
 load_dotenv()
 
-client = discord.Client()
-annie_id = "<@!955202644702556260>"
+client = discord.Client(intents=discord.Intents.default())
+annie_id = "<@955202644702556260>"
 
 
 @ client.event
@@ -25,6 +25,7 @@ async def on_message(message):
         return
 
     if annie_id in message.content:
+
         if "hello" in message.content:
             await message.channel.send("hello there!")
             return

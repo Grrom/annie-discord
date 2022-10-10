@@ -1,5 +1,6 @@
 import requests
 import discord
+import re
 
 
 async def get_sauce(message):
@@ -15,6 +16,7 @@ async def get_sauce(message):
         try:
             if not message.attachments:
                 for word in message.content.replace("sauce", "").split():
+                    word = word[word.find("http"):]
                     if "https://" in word or "http://" in word:
                         link = word
                         break
@@ -32,8 +34,10 @@ async def get_sauce(message):
             return
 
         try:
-            response = requests.get(
-                f"http://localhost:8080/sauce?image_url={link}")
+            response = requests.post(
+                f"https://annie-api.azurewebsites.net/sauce", json={
+                    "imageLink": link
+                })
             if response.status_code == 200:
                 return response.json()
             raise no_sauce
@@ -44,22 +48,23 @@ async def get_sauce(message):
             raise no_sauce from exception
 
     try:
-        sauce = await _get_sauce()
+        sauce = (await _get_sauce())["data"][0]
+        print(sauce)
         embed = discord.Embed(
             title="✅ Sauce Found!",
             color=discord.Color.yellow()
         )
         embed.set_thumbnail(url=sauce["thumbnail"])
         embed.add_field(
-            name="Title", value=sauce["title"] or "unknown", inline=True)
-        embed.add_field(name="Accuracy",
-                        value=f"{sauce['accuracy']}%", inline=True)
+            name="Title", value=sauce["sauce"] or "unknown", inline=True)
+        embed.add_field(name="Similarity",
+                        value=f"{sauce['similarity']}%", inline=True)
         embed.add_field(
-            name="Source", value=sauce["link"] or "link not available", inline=False)
+            name="Source", value=sauce["extUrls"][0] or "link not available", inline=False)
 
         await message.channel.send(embed=embed)
 
-        if sauce['accuracy'] < 60:
+        if float(sauce['similarity']) < 60:
             await message.channel.send(
                 "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
             )
