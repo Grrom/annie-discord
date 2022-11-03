@@ -24,7 +24,9 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if annie_id in message.content:
+    print(str(message.channel.type) == "private")
+
+    if annie_id in message.content or str(message.channel.type) == "private":
 
         if "hello" in message.content:
             await message.channel.send("hello there!")
