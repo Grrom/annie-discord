@@ -4,6 +4,9 @@ import discord
 
 from dotenv import load_dotenv
 from utils import saucenao
+from utils import saucenao
+
+from utils.intention_recognition.load import get_intention
 
 load_dotenv()
 
@@ -25,6 +28,9 @@ async def on_message(message):
         return
 
     if annie_id in message.content or str(message.channel.type) == "private":
+
+        await message.channel.send(get_intention(message.content))
+        return
 
         if "hello" in message.content:
             await message.channel.send("hello there!")

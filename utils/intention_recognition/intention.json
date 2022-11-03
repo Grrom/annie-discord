@@ -1,0 +1,32 @@
+[
+  {
+    "intention": "ask_sauce",
+    "phrases": [
+      "What's the sauce?",
+      "Sauce?",
+      "Give me the sauce",
+      "What's the anime title?",
+      "What's the anime name?",
+      "What's the salsa?",
+      "What's the sarsa?"
+    ]
+  },
+  {
+    "intention": "ask_recommendation",
+    "phrases": [
+      "What should I watch?",
+      "Recommend me some anime",
+      "Give me an anime recommendation",
+      "I need an anime recommendation"
+    ]
+  },
+  {
+    "intention": "add_to_watchlist",
+    "phrases": [
+      "Add to my watchlist",
+      "Add to my watch list",
+      "add to my list",
+      "add to my playlist"
+    ]
+  }
+]
