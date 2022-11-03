@@ -49,7 +49,6 @@ async def get_sauce(message):
 
     try:
         sauce = (await _get_sauce())["data"][0]
-        print(sauce)
         embed = discord.Embed(
             title="✅ Sauce Found!",
             color=discord.Color.yellow()

@@ -4,9 +4,9 @@ import discord
 
 from dotenv import load_dotenv
 from utils.saucenao import saucenao
+from utils.annie_api import annie
 
 from utils.intention_recognition.load import get_intention
-# from utils.title_recognition.load import hehe
 from utils.title_recognition.load import get_title
 
 load_dotenv()
@@ -35,7 +35,7 @@ async def on_message(message):
             return
 
         if get_intention(message.content) == "ask_recommendation":
-            await message.channel.send("recommendations?")
+            await message.channel.send(await annie.get_recommendations(message.author.id))
             return
 
         if get_intention(message.content) == "add_to_watchlist":
