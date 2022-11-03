@@ -13,6 +13,7 @@ with open("utils/intention_recognition/intention.json") as file:
 with open("utils/intention_recognition/intentions.pickle", "rb") as f:
     words, labels, training, output = pickle.load(f)
 
+tensorflow.compat.v1.reset_default_graph()
 
 net = tflearn.input_data(shape=[None, len(training[0])])
 net = tflearn.fully_connected(net, 20)
