@@ -30,20 +30,20 @@ async def on_message(message):
 
     if annie_id in message.content or str(message.channel.type) == "private":
 
-        await message.channel.send(get_title(message.content))
-        await message.channel.send(get_intention(message.content))
-        return
-
-        if "hello" in message.content:
-            await message.channel.send("hello there!")
-            return
-
-        if "sauce" in message.content:
+        if get_intention(message.content) == "ask_sauce":
             await saucenao.get_sauce(message)
             return
 
-        if "test" in message.content:
-            await message.channel.send("test")
+        if get_intention(message.content) == "ask_recommendation":
+            await message.channel.send("recommendations?")
+            return
+
+        if get_intention(message.content) == "add_to_watchlist":
+            await message.channel.send("edit watchlist?")
+            return
+
+        if "hello" in message.content:
+            await message.channel.send("hello there!")
             return
 
         await message.channel.send("I have no Idea what you're talking about")
