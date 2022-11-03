@@ -5,8 +5,8 @@ import discord
 from dotenv import load_dotenv
 from utils.saucenao import saucenao
 
-from utils.intention_recognition import load as intention_recognition
-# from utils.title_recognition import load as title_recognition
+# from utils.intention_recognition import load as intention_recognition
+from utils.title_recognition import load as title_recognition
 
 load_dotenv()
 
@@ -29,7 +29,7 @@ async def on_message(message):
 
     if annie_id in message.content or str(message.channel.type) == "private":
 
-        # await message.channel.send(get_title(message.content))
+        await message.channel.send(title_recognition.get_title(message.content))
         return
 
         if "hello" in message.content:
