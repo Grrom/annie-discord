@@ -7,11 +7,9 @@ import numpy
 import nltk
 
 with open("utils/title_recognition/anime_titles.json") as file:
-    # with open("anime_titles.json") as file:
     data = json.load(file)
 
 with open("utils/title_recognition/anime_titles.pickle", "rb") as f:
-    # with open("anime_titles.pickle", "rb") as f:
     words, labels, training, output = pickle.load(f)
 
 
@@ -23,7 +21,6 @@ net = tflearn.regression(net)
 
 model = tflearn.DNN(net)
 model.load("utils/title_recognition/title_recognition.tflearn")
-# model.load("title_recognition.tflearn")
 
 
 def bag_of_words(s, words):
@@ -66,6 +63,3 @@ def chat():
         title2 = labels[results_index+1]
 
         print([title, title1, title2])
-
-
-# chat()
