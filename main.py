@@ -28,14 +28,18 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if annie_id in message.content or str(message.channel.type) == "private":
+    if annie_id in message.content or str(message.channel.type) == "private" and ".register" not in message.content:
 
         if get_intention(message.content) == "ask_sauce":
             await saucenao.get_sauce(message)
             return
 
         if get_intention(message.content) == "ask_recommendation":
-            await message.channel.send(await annie.get_recommendations(message.author.id))
+            response = await annie.get_recommendations(message.author.id)
+            if response is None:
+                await message.channel.send("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
+                return
+            await message.channel.send(response)
             return
 
         if get_intention(message.content) == "add_to_watchlist":
