@@ -37,24 +37,24 @@ async def on_message(message):
         if get_intention(message.content) == "ask_recommendation":
             response = await annie.get_recommendations(message.author.id)
             if response is None:
-                await message.channel.send("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
+                await message.reply("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
                 return
-            await message.channel.send(embed=await annie.anime_to_embed(response))
+            await message.reply(embed=await annie.anime_to_embed(response))
 
             if response.get("trailerUrl") is not None:
-                await message.channel.send(response["trailerUrl"])
+                await message.reply(response["trailerUrl"])
 
             return
 
         if get_intention(message.content) == "add_to_watchlist":
-            await message.channel.send("edit watchlist?")
+            await message.reply("edit watchlist?")
             return
 
         if "hello" in message.content:
-            await message.channel.send("hello there!")
+            await message.reply("hello there!")
             return
 
-        await message.channel.send("I have no Idea what you're talking about")
+        await message.reply("I have no Idea what you're talking about")
         return
 
     return

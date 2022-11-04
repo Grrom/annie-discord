@@ -61,13 +61,13 @@ async def get_sauce(message):
         embed.add_field(
             name="Source", value=sauce["extUrls"][0] or "link not available", inline=False)
 
-        await message.channel.send(embed=embed)
+        await message.reply(embed=embed)
 
         if float(sauce['similarity']) < 60:
-            await message.channel.send(
+            await message.reply(
                 "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
             )
 
     except Exception as exception:
-        await message.channel.send(str(exception))
+        await message.reply(str(exception))
         return
