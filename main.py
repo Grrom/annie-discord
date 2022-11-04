@@ -39,7 +39,11 @@ async def on_message(message):
             if response is None:
                 await message.channel.send("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
                 return
-            await message.channel.send(response)
+            await message.channel.send(embed=await annie.anime_to_embed(response))
+
+            if response.get("trailerUrl") is not None:
+                await message.channel.send(response["trailerUrl"])
+
             return
 
         if get_intention(message.content) == "add_to_watchlist":
