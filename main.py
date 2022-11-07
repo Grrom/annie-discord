@@ -39,7 +39,7 @@ async def on_message(message):
             if response is None:
                 await message.reply("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
                 return
-            await message.reply(embed=await annie.anime_to_embed(response))
+            await message.reply(embed=await annie.anime_to_embed(response), view=annie.AnotherRecommendation(0))
 
             if response.get("trailerUrl") is not None:
                 await message.reply(response["trailerUrl"])

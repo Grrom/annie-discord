@@ -2,13 +2,13 @@ import requests
 import discord
 
 
-async def get_recommendations(discordId):
+async def get_recommendations(discordId, offset=0):
 
     async def _get_recommendations():
         try:
             response = requests.get(
-                # f"http://localhost:8080/recommendations-discord?discord_id=${discordId}")
-                f"https://annie-api.azurewebsites.net/recommendations-discord?discord_id=${discordId}")
+                f"http://localhost:8080/recommendations-discord?discord_id=${discordId}&offset=${offset}")
+            # f"https://annie-api.azurewebsites.net/recommendations-discord?discord_id=${discordId}&offset=${offset}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -43,3 +43,20 @@ async def anime_to_embed(anime):
         name="Trailer", value=anime["trailer"] or "link not available", inline=False)
 
     return embed
+
+
+class AnotherRecommendation(discord.ui.View):
+
+    def __init__(self, index):
+        super().__init__()
+        self.index = index
+
+    @discord.ui.button(label="Get another recommendation.", style=discord.ButtonStyle.primary, emoji="⏭️")
+    async def button_callback(self, button, interaction):
+        self.index += 1
+        await interaction.response.send_message(
+            "hmm... wait I'll think of something else...")
+        response = await get_recommendations(interaction.user.id, self.index)
+        await interaction.message.reply(embed=await anime_to_embed(response), view=AnotherRecommendation(self.index))
+        if response.get("trailerUrl") is not None:
+            await interaction.message.reply(response["trailerUrl"])
