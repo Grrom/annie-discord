@@ -7,8 +7,8 @@ async def get_recommendations(discordId, offset=0):
     async def _get_recommendations():
         try:
             response = requests.get(
-                f"http://localhost:8080/recommendations-discord?discord_id=${discordId}&offset=${offset}")
-            # f"https://annie-api.azurewebsites.net/recommendations-discord?discord_id=${discordId}&offset=${offset}")
+                # f"http://localhost:8080/recommendations-discord?discord_id=${discordId}&offset=${offset}")
+                f"https://annie-api.azurewebsites.net/recommendations-discord?discord_id=${discordId}&offset=${offset}")
             if response.status_code == 200:
                 return response.json()
             else:
