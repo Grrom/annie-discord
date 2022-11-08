@@ -1,0 +1,38 @@
+[
+  {
+    "intention": "drop_from_watchlist",
+    "phrases": [
+      "drop from watchlist",
+      "stop watching",
+      "remove from watchlist",
+      "drop from watch list",
+      "remove from watch list",
+      "remove"
+    ]
+  },
+  {
+    "intention": "add_to_watchlist",
+    "phrases": [
+      "add to my watchlist",
+      "put on my watchlist",
+      "add to my watch list",
+      "put on my watch list",
+      "add"
+    ]
+  },
+  {
+    "intention": "put_on_hold",
+    "phrases": ["hold", "put on hold"]
+  },
+  {
+    "intention": "mark_as_complete",
+    "phrases": [
+      "set as completed",
+      "set as finished",
+      "completed",
+      "I'm done watching",
+      "move to completed",
+      "complete"
+    ]
+  }
+]
