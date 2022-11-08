@@ -7,12 +7,12 @@ import numpy
 import nltk
 
 
-# with open("utils/intention_recognition/intention.json") as file:
-with open("intention.json") as file:
+with open("utils/intention_recognition/intention.json") as file:
+    # with open("intention.json") as file:
     data = json.load(file)
 
-# with open("utils/intention_recognition/intentions.pickle", "rb") as f:
-with open("intentions.pickle", "rb") as f:
+with open("utils/intention_recognition/intentions.pickle", "rb") as f:
+    # with open("intentions.pickle", "rb") as f:
     words, labels, training, output = pickle.load(f)
 
 tensorflow.compat.v1.reset_default_graph()
@@ -24,8 +24,8 @@ net = tflearn.fully_connected(net, len(output[0]), activation="softmax")
 net = tflearn.regression(net)
 
 model = tflearn.DNN(net)
-# model.load("utils/intention_recognition/intention_recognition.tflearn")
-model.load("intention_recognition.tflearn")
+model.load("utils/intention_recognition/intention_recognition.tflearn")
+# model.load("intention_recognition.tflearn")
 
 
 def bag_of_words(s, words):
@@ -46,7 +46,10 @@ def get_intention(inp):
     results = model.predict([bag_of_words(inp, words)])
     results_index = numpy.argmax(results)
 
-    return labels[results_index]
+    if (len(results[results > .5]) == 0):
+        return "unsure"
+    else:
+        return labels[results_index]
 
 
 def chat():

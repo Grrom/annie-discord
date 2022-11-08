@@ -47,16 +47,20 @@ async def anime_to_embed(anime):
 
 class AnotherRecommendation(discord.ui.View):
 
-    def __init__(self, index):
+    def __init__(self, index, channel):
         super().__init__()
         self.index = index
+        self.channel = channel
 
     @discord.ui.button(label="Get another recommendation.", style=discord.ButtonStyle.primary, emoji="⏭️")
     async def button_callback(self, button, interaction):
         self.index += 1
+
         await interaction.response.send_message(
             "hmm... wait I'll think of something else...")
-        response = await get_recommendations(interaction.user.id, self.index)
-        await interaction.message.reply(embed=await anime_to_embed(response), view=AnotherRecommendation(self.index))
-        if response.get("trailerUrl") is not None:
-            await interaction.message.reply(response["trailerUrl"])
+
+        async with self.channel.typing():
+            response = await get_recommendations(interaction.user.id, self.index)
+            await interaction.message.reply(embed=await anime_to_embed(response), view=AnotherRecommendation(self.index, self.channel))
+            if response.get("trailerUrl") is not None:
+                await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
