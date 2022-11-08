@@ -2,31 +2,75 @@
   {
     "intention": "ask_sauce",
     "phrases": [
-      "What's the sauce?",
-      "Sauce?",
+      "What's the sauce",
+      "Sauce",
       "Give me the sauce",
-      "What's the anime title?",
-      "What's the anime name?",
-      "What's the salsa?",
-      "What's the sarsa?"
+      "What's the anime title",
+      "What's the anime name",
+      "What's the salsa",
+      "What's the sarsa",
+      "title"
     ]
   },
   {
     "intention": "ask_recommendation",
     "phrases": [
-      "What should I watch?",
+      "any recommendations?",
+      "What should I watch",
       "Recommend me some anime",
       "Give me an anime recommendation",
-      "I need an anime recommendation"
+      "I need an anime recommendation",
+      "recommend",
+      "recomend",
+      "recommends",
+      "recommendatoins",
+      "recomendatoins"
+    ]
+  },
+  {
+    "intention": "drop_from_watchlist",
+    "phrases": [
+      "drop from watchlist",
+      "stop watching",
+      "remove from watchlist",
+      "drop from watch list",
+      "remove from watch list",
+      "remove from my list",
+      "drop from my list",
+      "drop from my playlist",
+      "remove from my play list",
+      "remove",
+      "drop"
     ]
   },
   {
     "intention": "add_to_watchlist",
     "phrases": [
+      "put on my watchlist",
+      "add to my watch list",
+      "put on my watch list",
+      "add",
       "Add to my watchlist",
       "Add to my watch list",
       "add to my list",
       "add to my playlist"
+    ]
+  },
+  {
+    "intention": "put_on_hold",
+    "phrases": ["hold", "put on hold"]
+  },
+  {
+    "intention": "mark_as_complete",
+    "phrases": [
+      "set as completed",
+      "set as finished",
+      "completed",
+      "I'm done watching",
+      "move to completed",
+      "complete",
+      "done",
+      "finished"
     ]
   }
 ]
