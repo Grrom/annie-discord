@@ -30,13 +30,21 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if (annie_id in message.content) or (str(message.channel.type) == "private" and ".register" not in message.content) or ((await message.channel.fetch_message(message.reference.message_id)).author.id == client.user.id):
+    async def is_reply_to_annie():
+        if message.type == MessageType.reply:
+            return ((await message.channel.fetch_message(message.reference.message_id)).author.id == client.user.id)
+        else:
+            return False
 
-        if get_intention(message.content) == "ask_sauce":
+    if (annie_id in message.content) or (str(message.channel.type) == "private" and ".register" not in message.content) or await is_reply_to_annie():
+
+        intention = get_intention(message.content)
+
+        if intention == "ask_sauce":
             await saucenao.get_sauce(message)
             return
 
-        if get_intention(message.content) == "ask_recommendation":
+        if intention == "ask_recommendation":
             await message.reply("Hmmm... wait, I'll check some titles you might like.")
 
             async with message.channel.typing():
@@ -49,21 +57,22 @@ async def on_message(message):
                 if response.get("trailerUrl") is not None:
                     await message.reply("Here's a trailer for it: " + response["trailerUrl"])
                 return
+            return
 
         # MAL ACTIONS STARTS HERE
-        if get_intention(message.content) == "add_to_watchlist":
+        if intention == "add_to_watchlist":
             await message.reply("add")
             return
 
-        if get_intention(message.content) == "drop_from_watchlist":
+        if intention == "drop_from_watchlist":
             await message.reply("drop")
             return
 
-        if get_intention(message.content) == "put_on_hold":
+        if intention == "put_on_hold":
             await message.reply("hold")
             return
 
-        if get_intention(message.content) == "mark_as_complete":
+        if intention == "mark_as_complete":
             await message.reply("complete")
             return
 
@@ -75,9 +84,9 @@ async def on_message(message):
             await message.reply("No worries mate!")
             return
 
-        if "unsure" in message.content:
+        if intention == "unsure":
             await message.reply("unsure")
-        # MAL ACTIONS ENDS HERE
+        #  MAL ACTIONS ENDS HERE
 
         await message.reply("I have no Idea what you're talking about")
         return

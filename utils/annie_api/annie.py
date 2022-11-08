@@ -37,6 +37,8 @@ async def anime_to_embed(anime):
         name="MAL url", value=anime["malUrl"] or "unknown", inline=True)
     embed.add_field(
         name="Genres", value=anime["genres"] or "unknown", inline=False)
+    embed.add_field(
+        name="Score", value=anime["score"] or "unknown", inline=False)
     embed.add_field(name="Synopsis",
                     value=f"{anime['synopsis'][:998]}...", inline=False)
     embed.add_field(
@@ -64,3 +66,4 @@ class AnotherRecommendation(discord.ui.View):
             await interaction.message.reply(embed=await anime_to_embed(response), view=AnotherRecommendation(self.index, self.channel))
             if response.get("trailerUrl") is not None:
                 await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
+                return
