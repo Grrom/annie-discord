@@ -6,8 +6,6 @@ import tflearn as tr_tflearn
 import numpy
 import nltk
 
-hehe = "hehe"
-
 with open("utils/title_recognition/anime_titles.json") as file:
     data = json.load(file)
 
@@ -41,6 +39,10 @@ def bag_of_words(s, words):
 
 
 def get_title(inp):
+    for text in ["my watchlist", "watchlist", "watch", "list", "add", "remove", "to my", "my", "to"]:
+        inp = inp.replace(text, "")
+    print(inp)
+
     results = tr_model.predict([bag_of_words(inp, words)])
     results_index = numpy.argmax(results)
 
@@ -56,7 +58,6 @@ def chat():
 
         for text in ["my watchlist", "watchlist", "watch", "list", "add", "remove", "to my", "my", "to"]:
             inp = inp.replace(text, "")
-        print(inp)
 
         results = tr_model.predict([bag_of_words(inp, words)])
         results_index = numpy.argmax(results)

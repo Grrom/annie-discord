@@ -61,6 +61,8 @@ async def on_message(message):
 
         # MAL ACTIONS STARTS HERE
         if intention == "add_to_watchlist":
+            title = get_title(message.content)
+            print(title)
             await message.reply("add")
             return
 
