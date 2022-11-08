@@ -63,6 +63,8 @@
   {
     "intention": "mark_as_complete",
     "phrases": [
+      "mark as completed",
+      "mark as complete",
       "set as completed",
       "set as finished",
       "completed",
