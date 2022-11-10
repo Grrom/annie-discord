@@ -22,8 +22,6 @@ async def on_ready():
     print("|-- Annie is online! --|")
     print("========================")
 
-print("hehe")
-
 
 @ client.command(description="Search an anime.")
 async def search(ctx, anime_title: discord.Option(str)):
