@@ -31,7 +31,7 @@ async def search(ctx, anime_title: discord.Option(str)):
     if result is None:
         await ctx.respond("Sorry I couldn't find that show, try another keyword.")
         return
-    await ctx.respond(embed=await annie.anime_to_embed(result, title="Found it!"), view=annie.MalActions())
+    await ctx.respond(embed=await annie.anime_to_embed(result, title="Found it!"), view=annie.MalActions(result["id"], result["name"], ctx))
     return
 
 

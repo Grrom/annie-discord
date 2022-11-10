@@ -7,8 +7,8 @@ async def get_recommendations(discordId, offset=0):
     async def _get_recommendations():
         try:
             response = requests.get(
-                # f"http://localhost:8080/recommendations-discord?discord_id=${discordId}&offset=${offset}")
-                f"https://annie-api.azurewebsites.net/recommendations-discord?discord_id=${discordId}&offset=${offset}")
+                # f"http://localhost:8080/recommendations-discord?discord_id={discordId}&offset={offset}")
+                f"https://annie-api.azurewebsites.net/recommendations-discord?discord_id={discordId}&offset={offset}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -29,8 +29,8 @@ async def search_anime(queryString):
     async def search():
         try:
             response = requests.get(
-                # f"http://localhost:8080/search-anime?queryString=${queryString}")
-                f"https://annie-api.azurewebsites.net/search-anime?queryString=${queryString}")
+                # f"http://localhost:8080/search-anime?queryString={queryString}")
+                f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -44,6 +44,40 @@ async def search_anime(queryString):
         return None
 
     return result["result"]
+
+
+async def update_anime(animeId, status, score, num_watched_episodes, discord_id):
+    async def update():
+        params = {}
+        if score is not None:
+            params = {
+                "animeId": animeId,
+                "status": status,
+                "score": score,
+                "num_watched_episodes": num_watched_episodes,
+                "discord_id": f"{discord_id}"
+            }
+        else:
+            params = {
+                "animeId": animeId,
+                "status": status,
+                "discord_id": f"{discord_id}"
+            }
+
+        try:
+            response = requests.post(
+                f"http://localhost:8080/update-anime-status-discord", json=params)
+            # f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {error: "Something went wrong"}
+        except Exception as e:
+            return {error: "Something went wrong"}
+
+    result = await update()
+
+    return result
 
 
 async def anime_to_embed(anime, title):
@@ -76,7 +110,7 @@ class AnotherRecommendation(discord.ui.View):
         self.index = index
         self.channel = channel
 
-    @discord.ui.button(label="Get another recommendation.", style=discord.ButtonStyle.primary, emoji="⏭️")
+    @ discord.ui.button(label="Get another recommendation.", style=discord.ButtonStyle.primary, emoji="⏭️")
     async def button_callback(self, button, interaction):
         self.index += 1
 
@@ -91,28 +125,104 @@ class AnotherRecommendation(discord.ui.View):
                 return
 
 
+class LeaveRating(discord.ui.View):
+
+    def __init__(self, animeId, animeName, ctx):
+        super().__init__()
+        self.animeId = animeId
+        self.animeName = animeName
+        self.ctx = ctx
+
+    async def update_completed(self, score, interaction):
+        await interaction.response.send_message("Updating wait a sec.")
+
+        await self.ctx.trigger_typing()
+        response = await update_anime(self.animeId, "completed", score, 999, interaction.user.id)
+
+        if response.get("error") is not None:
+            await interaction.message.reply(response["error"])
+        else:
+            await interaction.message.reply(f"Marked {self.animeName} as completed.")
+
+    @ discord.ui.button(label="No rating", style=discord.ButtonStyle.primary, emoji="🙅🏻‍♂️")
+    async def no_rating(self, button, interaction):
+        await self.update_completed(0, interaction)
+
+    @ discord.ui.button(label="1", style=discord.ButtonStyle.primary)
+    async def one(self, button, interaction):
+        await self.update_completed(1, interaction)
+
+    @ discord.ui.button(label="2", style=discord.ButtonStyle.primary)
+    async def two(self, button, interaction):
+        await self.update_completed(2, interaction)
+
+    @ discord.ui.button(label="3", style=discord.ButtonStyle.primary)
+    async def three(self, button, interaction):
+        await self.update_completed(3, interaction)
+
+    @ discord.ui.button(label="4", style=discord.ButtonStyle.primary)
+    async def four(self, button, interaction):
+        await self.update_completed(4, interaction)
+
+    @ discord.ui.button(label="5", style=discord.ButtonStyle.primary)
+    async def five(self, button, interaction):
+        await self.update_completed(5, interaction)
+
+    @ discord.ui.button(label="6", style=discord.ButtonStyle.primary)
+    async def six(self, button, interaction):
+        await self.update_completed(6, interaction)
+
+    @ discord.ui.button(label="7", style=discord.ButtonStyle.primary)
+    async def seven(self, button, interaction):
+        await self.update_completed(7, interaction)
+
+    @ discord.ui.button(label="8", style=discord.ButtonStyle.primary)
+    async def eight(self, button, interaction):
+        await self.update_completed(8, interaction)
+
+    @ discord.ui.button(label="9", style=discord.ButtonStyle.primary)
+    async def nine(self, button, interaction):
+        await self.update_completed(9, interaction)
+
+    @ discord.ui.button(label="10", style=discord.ButtonStyle.primary)
+    async def ten(self, button, interaction):
+        await self.update_completed(10, interaction)
+
+
 class MalActions(discord.ui.View):
+    def __init__(self, animeId, animeName, ctx):
+        super().__init__()
+        self.animeId = animeId
+        self.animeName = animeName
+        self.ctx = ctx
 
-    @discord.ui.button(label="Plan to Watch", style=discord.ButtonStyle.blurple, emoji="➕")
+    async def update(self, status, interaction):
+        await interaction.response.send_message("Updating wait a sec.")
+
+        await self.ctx.trigger_typing()
+        response = await update_anime(self.animeId, status, 0, 0, interaction.user.id)
+        if response.get("error") is not None:
+            await interaction.message.reply(response["error"])
+        else:
+            if status is "plan_to_watch":
+                await interaction.message.reply(f"I've Added {self.animeName} to your watchlist.")
+            if status is "on_hold":
+                await interaction.message.reply(f"I've put {self.animeName} on hold.")
+            if status is "dropped":
+                await interaction.message.reply(f"Dropped {self.animeName}, sadge 😢")
+
+    @ discord.ui.button(label="Plan to Watch", style=discord.ButtonStyle.blurple, emoji="➕")
     async def planToWathc(self, button, interaction):
+        await self.update("plan_to_watch", interaction)
 
-        await interaction.response.send_message(
-            "hmm... wait I'll think of something else...")
-
-    @discord.ui.button(label="Mark Complete", style=discord.ButtonStyle.green, emoji="✔️")
+    @ discord.ui.button(label="Mark Complete", style=discord.ButtonStyle.green, emoji="✔️")
     async def completed(self, button, interaction):
+        await interaction.response.send_message("Wanna rate the show before marking it as complete?", view=LeaveRating(self.animeId, self.animeName, self.ctx))
 
-        await interaction.response.send_message(
-            "hmm... wait I'll think of something else...")
-
-    @discord.ui.button(label="Put on Hold", style=discord.ButtonStyle.gray, emoji="⏱️")
+    @ discord.ui.button(label="Put on Hold", style=discord.ButtonStyle.gray, emoji="⏱️")
     async def hold(self, button, interaction):
+        await self.update("on_hold", interaction)
 
-        await interaction.response.send_message(
-            "hmm... wait I'll think of something else...")
-
-    @discord.ui.button(label="Drop", style=discord.ButtonStyle.danger, emoji="⏹")
+    @ discord.ui.button(label="Drop", style=discord.ButtonStyle.danger, emoji="⏹")
     async def drop(self, button, interaction):
-
-        await interaction.response.send_message(
-            "hmm... wait I'll think of something else...")
+        await self.update("dropped", interaction)
