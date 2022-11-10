@@ -32,6 +32,8 @@ async def search(ctx, anime_title: discord.Option(str)):
         await ctx.respond("Sorry I couldn't find that show, try another keyword.")
         return
     await ctx.respond(embed=await annie.anime_to_embed(result, title="Found it!"), view=annie.MalActions(result["id"], result["name"], ctx))
+    if result.get("trailerUrl") is not None:
+        await ctx.respond("Here's a trailer for it: " + result["trailerUrl"])
     return
 
 
@@ -70,7 +72,6 @@ async def on_message(message):
                 return
             return
 
-        # MAL ACTIONS STARTS HERE
         if intention in ["add_to_watchlist", "drop_from_watchlist", "put_on_hold", "mark_as_complete"]:
             await message.reply("Use /search to search a show and perform MyAnimeList actions")
             return
@@ -84,10 +85,8 @@ async def on_message(message):
             return
 
         if intention == "unsure":
-            await message.reply("unsure")
-        #  MAL ACTIONS ENDS HERE
+            await message.reply("I have no Idea what you're talking about.")
 
-        await message.reply("I have no Idea what you're talking about")
         return
 
     return
