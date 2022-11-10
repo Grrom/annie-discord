@@ -22,11 +22,11 @@ async def on_ready():
     print("|-- Annie is online! --|")
     print("========================")
 
-print("hehe")
-
 
 @ client.command(description="Search an anime.")
 async def search(ctx, anime_title: discord.Option(str)):
+    await ctx.respond("Wait lemme look it up.")
+    await ctx.trigger_typing()
     result = await annie.search_anime(anime_title)
     if result is None:
         await ctx.respond("Sorry I couldn't find that show, try another keyword.")

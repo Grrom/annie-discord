@@ -29,8 +29,8 @@ async def search_anime(queryString):
     async def search():
         try:
             response = requests.get(
-                f"http://localhost:8080/search-anime?queryString=${queryString}")
-            # f"https://annie-api.azurewebsites.net/search-anime?queryString=${queryString}")
+                # f"http://localhost:8080/search-anime?queryString=${queryString}")
+                f"https://annie-api.azurewebsites.net/search-anime?queryString=${queryString}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -62,7 +62,7 @@ async def anime_to_embed(anime, title):
     embed.add_field(
         name="Score", value=anime["score"] or "unknown", inline=False)
     embed.add_field(name="Synopsis",
-                    value=f"{anime['synopsis'][:998]}...", inline=False)
+                    value=f"{(anime['synopsis'] or 'no synopsis')[:998]}...", inline=False)
     embed.add_field(
         name="Trailer", value=anime["trailer"] or "link not available", inline=False)
 
