@@ -9,11 +9,10 @@ from utils.saucenao import saucenao
 from utils.annie_api import annie
 
 from utils.intention_recognition.load import get_intention
-from utils.title_recognition.load import get_title
 
 load_dotenv()
 
-client = discord.Client(intents=discord.Intents.default())
+client = discord.Bot(intents=discord.Intents.default())
 annie_id = "<@955202644702556260>"
 
 
@@ -22,6 +21,16 @@ async def on_ready():
     print("========================")
     print("|-- Annie is online! --|")
     print("========================")
+
+
+@ client.command(description="Search an anime.")
+async def search(ctx, anime_title: discord.Option(str)):
+    result = await annie.search_anime(anime_title)
+    if result is None:
+        await ctx.respond("Sorry I couldn't find that show, try another keyword.")
+        return
+    await ctx.respond(embed=await annie.anime_to_embed(result, title="Found it!"), view=annie.MalActions())
+    return
 
 
 @ client.event
@@ -52,7 +61,7 @@ async def on_message(message):
                 if response is None:
                     await message.reply("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
                     return
-                await message.reply(embed=await annie.anime_to_embed(response), view=annie.AnotherRecommendation(0, message.channel))
+                await message.reply(embed=await annie.anime_to_embed(response, title="I think you might like"), view=annie.AnotherRecommendation(0, message.channel))
 
                 if response.get("trailerUrl") is not None:
                     await message.reply("Here's a trailer for it: " + response["trailerUrl"])
@@ -60,22 +69,8 @@ async def on_message(message):
             return
 
         # MAL ACTIONS STARTS HERE
-        if intention == "add_to_watchlist":
-            title = get_title(message.content)
-            print(title)
-            await message.reply("add")
-            return
-
-        if intention == "drop_from_watchlist":
-            await message.reply("drop")
-            return
-
-        if intention == "put_on_hold":
-            await message.reply("hold")
-            return
-
-        if intention == "mark_as_complete":
-            await message.reply("complete")
+        if intention in ["add_to_watchlist", "drop_from_watchlist", "put_on_hold", "mark_as_complete"]:
+            await message.reply("Use /search to search a show and perform MyAnimeList actions")
             return
 
         if "hello" in message.content:

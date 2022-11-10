@@ -24,10 +24,32 @@ async def get_recommendations(discordId, offset=0):
     return recommendations
 
 
-async def anime_to_embed(anime):
+async def search_anime(queryString):
+
+    async def search():
+        try:
+            response = requests.get(
+                f"http://localhost:8080/search-anime?queryString=${queryString}")
+            # f"https://annie-api.azurewebsites.net/search-anime?queryString=${queryString}")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {error: "no response"}
+        except Exception as e:
+            return {error: "no response"}
+
+    result = await search()
+
+    if result.get("error") is not None:
+        return None
+
+    return result["result"]
+
+
+async def anime_to_embed(anime, title):
 
     embed = discord.Embed(
-        title="I think you might like.",
+        title=title,
         color=discord.Color.yellow()
     )
     embed.set_thumbnail(url=anime["thumbnail"])
@@ -63,7 +85,34 @@ class AnotherRecommendation(discord.ui.View):
 
         async with self.channel.typing():
             response = await get_recommendations(interaction.user.id, self.index)
-            await interaction.message.reply(embed=await anime_to_embed(response), view=AnotherRecommendation(self.index, self.channel))
+            await interaction.message.reply(embed=await anime_to_embed(response, title="I think you might like"), view=AnotherRecommendation(self.index, self.channel))
             if response.get("trailerUrl") is not None:
                 await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
                 return
+
+
+class MalActions(discord.ui.View):
+
+    @discord.ui.button(label="Plan to Watch", style=discord.ButtonStyle.blurple, emoji="➕")
+    async def planToWathc(self, button, interaction):
+
+        await interaction.response.send_message(
+            "hmm... wait I'll think of something else...")
+
+    @discord.ui.button(label="Mark Complete", style=discord.ButtonStyle.green, emoji="✔️")
+    async def completed(self, button, interaction):
+
+        await interaction.response.send_message(
+            "hmm... wait I'll think of something else...")
+
+    @discord.ui.button(label="Put on Hold", style=discord.ButtonStyle.gray, emoji="⏱️")
+    async def hold(self, button, interaction):
+
+        await interaction.response.send_message(
+            "hmm... wait I'll think of something else...")
+
+    @discord.ui.button(label="Drop", style=discord.ButtonStyle.danger, emoji="⏹")
+    async def drop(self, button, interaction):
+
+        await interaction.response.send_message(
+            "hmm... wait I'll think of something else...")
