@@ -36,7 +36,7 @@ async def search(ctx, anime_title: discord.Option(str)):
     sample_pages = []
 
     for result in results:
-        sample_pages.append(await annie.anime_to_embed(result, title="Found it!"))
+        sample_pages.append(annie.anime_to_embed(result, title="Found it!"))
 
     paginator = pages.Paginator(
         pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx))
@@ -65,7 +65,6 @@ async def on_message(message):
             return
 
         if intention == "quiz":
-            # await ctx.trigger_typing()
             await message.reply("Which writing system would you like to practice?", view=annie.PickWritingSystem(message.author.id, message.channel))
             return
 
@@ -77,7 +76,7 @@ async def on_message(message):
                 if response is None:
                     await message.reply("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
                     return
-                await message.reply(embed=await annie.anime_to_embed(response, title="I think you might like"), view=annie.AnotherRecommendation(0, message.channel))
+                await message.reply(embed=annie.anime_to_embed(response, title="I think you might like"), view=annie.AnotherRecommendation(0, message.channel))
 
                 if response.get("trailerUrl") is not None:
                     await message.reply("Here's a trailer for it: " + response["trailerUrl"])

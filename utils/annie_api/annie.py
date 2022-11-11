@@ -24,14 +24,15 @@ async def get_recommendations(discordId, offset=0):
     return recommendations
 
 
-async def get_quiz(writing_system, ordering_system):
+async def get_quiz(writing_system, ordering_system, discord_id):
     async def send_request():
-        url = f"http://localhost:8080/kana-quiz?writing={writing_system}&ordering={ordering_system}"
+        # url = f"http://localhost:8080/kana-quiz-discord?writing={writing_system}&ordering={ordering_system}&discord_id={discord_id}"
+        url = f"http://annie-api.azurewebsites.net/kana-quiz-discord?writing={writing_system}&ordering={ordering_system}&discord_id={discord_id}"
         if writing_system == "kanji":
-            url = f"http://localhost:8080/kanji-quiz?reading={ordering_system}"
+            # url = f"http://localhost:8080/kanji-quiz-discord?reading={ordering_system}&discord_id={discord_id}"
+            url = f"http://annie-api.azurewebsites.net/kanji-quiz-discord?reading={ordering_system}&discord_id={discord_id}"
         try:
             response = requests.get(url)
-            # f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -44,13 +45,37 @@ async def get_quiz(writing_system, ordering_system):
     return result
 
 
+async def save_quiz_result(discordId, writing_system, ordering_system, items, score):
+    async def save():
+        try:
+            response = requests.post(
+                # f"http://localhost:8080/save-quiz-result-discord", json={
+                f"http://annie-api.azurewebsites.net/save-quiz-result-discord", json={
+                    "discord_id": f"{discordId}",
+                    "writingSystem": writing_system,
+                    "type": ordering_system,
+                    "items": 10,
+                    "items": score,
+                })
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {error: "no response"}
+        except Exception as e:
+            return {error: "no response"}
+
+    result = await save()
+
+    return result
+
+
 async def search_anime(queryString):
 
     async def search():
         try:
             response = requests.get(
-                f"http://localhost:8080/search-anime?queryString={queryString}")
-            # f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
+                # f"http://localhost:8080/search-anime?queryString={queryString}")
+                f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -86,8 +111,8 @@ async def update_anime(animeId, status, score, num_watched_episodes, discord_id)
 
         try:
             response = requests.post(
-                f"http://localhost:8080/update-anime-status-discord", json=params)
-            # f"https://annie-api.azurewebsites.net/update-anime-status-discord", json=params)
+                # f"http://localhost:8080/update-anime-status-discord", json=params)
+                f"https://annie-api.azurewebsites.net/update-anime-status-discord", json=params)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -160,7 +185,7 @@ class AnotherRecommendation(discord.ui.View):
 
         async with self.channel.typing():
             response = await get_recommendations(interaction.user.id, self.index)
-            await interaction.message.reply(embed=await anime_to_embed(response, title="How about this?"), view=AnotherRecommendation(self.index, self.channel))
+            await interaction.message.reply(embed=anime_to_embed(response, title="How about this?"), view=AnotherRecommendation(self.index, self.channel))
             if response.get("trailerUrl") is not None:
                 await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
                 return
@@ -198,13 +223,17 @@ class PickOrderingSystem(discord.ui.View):
     async def get_quiz(self, ordering_system, interaction):
         async with self.channel.typing():
             await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
-            questions = await get_quiz(self.writing_system, ordering_system)
+            questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
-            _quiz_embed = quiz_embed(
-                self.writing_system, ordering_system, 0, 0, questions)
+            if type(questions) == dict and questions.get("error") is not None:
+                await interaction.message.reply(questions.get("error"))
+                return
+            else:
+                _quiz_embed = quiz_embed(
+                    self.writing_system, ordering_system, 0, 0, questions)
 
-            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
-            return
+                await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
+                return
 
     @ discord.ui.button(label="Gojuuon", style=discord.ButtonStyle.primary)
     async def gojuuon(self, button, interaction):
@@ -251,6 +280,8 @@ class QuizChoices(discord.ui.View):
                 color=discord.Color.green()
             )
             await interaction.message.reply(f"Quiz Done: ", embed=score_embed)
+            await save_quiz_result(interaction.user.id, self.writing_system,
+                                   self.ordering_system, self.current_index, self.current_score)
         else:
             _quiz_embed = quiz_embed(
                 self.writing_system, self.ordering_system, self.current_index, self.current_score, self.questions)
@@ -282,13 +313,17 @@ class PickKanjiReading(discord.ui.View):
     async def get_quiz(self, ordering_system, interaction):
         async with self.channel.typing():
             await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
-            questions = await get_quiz(self.writing_system, ordering_system)
+            questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
-            _quiz_embed = quiz_embed(
-                self.writing_system, ordering_system, 0, 0, questions)
+            if type(questions) == dict and questions.get("error") is not None:
+                await interaction.message.reply(questions.get("error"))
+                return
+            else:
+                _quiz_embed = quiz_embed(
+                    self.writing_system, ordering_system, 0, 0, questions)
 
-            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
-            return
+                await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
+                return
 
     @ discord.ui.button(label="Onyomi", style=discord.ButtonStyle.primary)
     async def onyomi(self, button, interaction):
