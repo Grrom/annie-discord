@@ -40,21 +40,6 @@ async def search(ctx, anime_title: discord.Option(str)):
 
     paginator = pages.Paginator(
         pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx))
-    paginator.add_button(
-        pages.PaginatorButton(
-            "prev", style=discord.ButtonStyle.green
-        )
-    )
-    paginator.add_button(
-        pages.PaginatorButton(
-            "page_indicator", style=discord.ButtonStyle.gray, disabled=True
-        )
-    )
-    paginator.add_button(
-        pages.PaginatorButton(
-            "next", style=discord.ButtonStyle.green
-        )
-    )
     await paginator.respond(ctx.interaction, ephemeral=False)
     return
 
@@ -80,7 +65,8 @@ async def on_message(message):
             return
 
         if intention == "quiz":
-            await message.reply("take quiz")
+            # await ctx.trigger_typing()
+            await message.reply("Which writing system would you like to practice?", view=annie.PickWritingSystem(message.author.id, message.channel))
             return
 
         if intention == "ask_recommendation":
