@@ -28,8 +28,7 @@ async def get_quiz(writing_system, ordering_system):
     async def send_request():
         url = f"http://localhost:8080/kana-quiz?writing={writing_system}&ordering={ordering_system}"
         if writing_system == "kanji":
-            url = f"http://localhost:8080/kanji-quiz?writing={writing_system}&ordering={ordering_system}"
-
+            url = f"http://localhost:8080/kanji-quiz?reading={ordering_system}"
         try:
             response = requests.get(url)
             # f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
@@ -136,8 +135,12 @@ def quiz_embed(writing_system, ordering_system, current_index, current_score, qu
         name="Question Number", value=current_index, inline=True)
     embed.add_field(
         name="Current Score", value=current_score, inline=True)
+
+    question_key = "kana"
+    if writing_system == "kanji":
+        question_key = "character"
     embed.add_field(
-        name="Choose the corresponding reading for the character below.", value=questions[current_index]["kana"], inline=False)
+        name="Choose the corresponding reading for the character below.", value=questions[current_index][question_key], inline=False)
 
     return embed
 
@@ -183,7 +186,7 @@ class PickWritingSystem(discord.ui.View):
 
     @ discord.ui.button(label="Kanji", style=discord.ButtonStyle.primary)
     async def kanji(self, button, interaction):
-        await interaction.response.send_message("Choose Quiz", view=PickKanjiReading())
+        await interaction.response.send_message("Choose Quiz", view=PickKanjiReading("kanji", self.channel))
 
 
 class PickOrderingSystem(discord.ui.View):
@@ -225,10 +228,14 @@ class QuizChoices(discord.ui.View):
         self.writing_system = writing_system
         self.ordering_system = ordering_system
 
-        self.choice1.label = questions[current_index]["romajiChoices"][0]
-        self.choice2.label = questions[current_index]["romajiChoices"][1]
-        self.choice3.label = questions[current_index]["romajiChoices"][2]
-        self.choice4.label = questions[current_index]["romajiChoices"][3]
+        choices_key = "romajiChoices"
+        if writing_system == "kanji":
+            choices_key = "choices"
+
+        self.choice1.label = questions[current_index][choices_key][0]
+        self.choice2.label = questions[current_index][choices_key][1]
+        self.choice3.label = questions[current_index][choices_key][2]
+        self.choice4.label = questions[current_index][choices_key][3]
 
     async def next_question(self, answer, interaction):
         if self.questions[self.current_index]["correctAnswer"] == answer:
@@ -267,17 +274,33 @@ class QuizChoices(discord.ui.View):
 
 
 class PickKanjiReading(discord.ui.View):
+    def __init__(self, writing_system, channel):
+        super().__init__()
+        self.writing_system = writing_system
+        self.channel = channel
+
+    async def get_quiz(self, ordering_system, interaction):
+        async with self.channel.typing():
+            await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
+            questions = await get_quiz(self.writing_system, ordering_system)
+
+            _quiz_embed = quiz_embed(
+                self.writing_system, ordering_system, 0, 0, questions)
+
+            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
+            return
+
     @ discord.ui.button(label="Onyomi", style=discord.ButtonStyle.primary)
     async def onyomi(self, button, interaction):
-        await interaction.response.send_message("Onyomi")
+        await self.get_quiz("onyomi", interaction)
 
     @ discord.ui.button(label="Kunyomi", style=discord.ButtonStyle.primary)
     async def kunyomi(self, button, interaction):
-        await interaction.response.send_message("Kunyomi")
+        await self.get_quiz("kunyomi", interaction)
 
     @ discord.ui.button(label="English", style=discord.ButtonStyle.primary)
     async def english(self, button, interaction):
-        await interaction.response.send_message("English")
+        await self.get_quiz("english", interaction)
 
 
 class LeaveRating(discord.ui.View):
