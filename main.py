@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from utils.saucenao import saucenao
 from utils.annie_api import annie
 
+from discord.ext import commands, pages
 from utils.intention_recognition.load import get_intention
 
 load_dotenv()
@@ -27,13 +28,34 @@ async def on_ready():
 async def search(ctx, anime_title: discord.Option(str)):
     await ctx.respond("Wait lemme look it up.")
     await ctx.trigger_typing()
-    result = await annie.search_anime(anime_title)
-    if result is None:
+    results = await annie.search_anime(anime_title)
+    if len(results) == 0:
         await ctx.respond("Sorry I couldn't find that show, try another keyword.")
         return
-    await ctx.respond(embed=await annie.anime_to_embed(result, title="Found it!"), view=annie.MalActions(result["id"], result["name"], ctx))
-    if result.get("trailerUrl") is not None:
-        await ctx.respond("Here's a trailer for it: " + result["trailerUrl"])
+
+    sample_pages = []
+
+    for result in results:
+        sample_pages.append(await annie.anime_to_embed(result, title="Found it!"))
+
+    paginator = pages.Paginator(
+        pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx))
+    paginator.add_button(
+        pages.PaginatorButton(
+            "prev", style=discord.ButtonStyle.green
+        )
+    )
+    paginator.add_button(
+        pages.PaginatorButton(
+            "page_indicator", style=discord.ButtonStyle.gray, disabled=True
+        )
+    )
+    paginator.add_button(
+        pages.PaginatorButton(
+            "next", style=discord.ButtonStyle.green
+        )
+    )
+    await paginator.respond(ctx.interaction, ephemeral=False)
     return
 
 

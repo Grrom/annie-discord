@@ -29,8 +29,8 @@ async def search_anime(queryString):
     async def search():
         try:
             response = requests.get(
-                # f"http://localhost:8080/search-anime?queryString={queryString}")
-                f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
+                f"http://localhost:8080/search-anime?queryString={queryString}")
+            # f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
             if response.status_code == 200:
                 return response.json()
             else:
@@ -43,7 +43,7 @@ async def search_anime(queryString):
     if result.get("error") is not None:
         return None
 
-    return result["result"]
+    return result["results"]
 
 
 async def update_anime(animeId, status, score, num_watched_episodes, discord_id):
@@ -67,7 +67,7 @@ async def update_anime(animeId, status, score, num_watched_episodes, discord_id)
         try:
             response = requests.post(
                 f"http://localhost:8080/update-anime-status-discord", json=params)
-            # f"https://annie-api.azurewebsites.net/search-anime?queryString={queryString}")
+            # f"https://annie-api.azurewebsites.net/update-anime-status-discord", json=params)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -94,7 +94,9 @@ async def anime_to_embed(anime, title):
     embed.add_field(
         name="Genres", value=anime["genres"] or "unknown", inline=False)
     embed.add_field(
-        name="Score", value=anime["score"] or "unknown", inline=False)
+        name="Score", value=anime["score"] or "unknown", inline=True)
+    embed.add_field(
+        name="MAL id", value=anime["id"] or "unknown", inline=True)
     embed.add_field(name="Synopsis",
                     value=f"{(anime['synopsis'] or 'no synopsis')[:998]}...", inline=False)
     embed.add_field(
@@ -119,7 +121,7 @@ class AnotherRecommendation(discord.ui.View):
 
         async with self.channel.typing():
             response = await get_recommendations(interaction.user.id, self.index)
-            await interaction.message.reply(embed=await anime_to_embed(response, title="I think you might like"), view=AnotherRecommendation(self.index, self.channel))
+            await interaction.message.reply(embed=await anime_to_embed(response, title="How about this?"), view=AnotherRecommendation(self.index, self.channel))
             if response.get("trailerUrl") is not None:
                 await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
                 return
@@ -190,34 +192,38 @@ class LeaveRating(discord.ui.View):
 
 
 class MalActions(discord.ui.View):
-    def __init__(self, animeId, animeName, ctx):
+    def __init__(self, ctx):
         super().__init__()
-        self.animeId = animeId
-        self.animeName = animeName
         self.ctx = ctx
 
     async def update(self, status, interaction):
         await interaction.response.send_message("Updating wait a sec.")
 
+        animeId = interaction.message.embeds[0].fields[4].value
+        animeName = interaction.message.embeds[0].fields[0].value
+
         await self.ctx.trigger_typing()
-        response = await update_anime(self.animeId, status, 0, 0, interaction.user.id)
+        response = await update_anime(animeId, status, 0, 0, interaction.user.id)
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])
         else:
-            if status is "plan_to_watch":
-                await interaction.message.reply(f"I've Added {self.animeName} to your watchlist.")
-            if status is "on_hold":
-                await interaction.message.reply(f"I've put {self.animeName} on hold.")
-            if status is "dropped":
-                await interaction.message.reply(f"Dropped {self.animeName}, sadge 😢")
+            if status == "plan_to_watch":
+                await interaction.message.reply(f"I've Added {animeName} to your watchlist.")
+            if status == "on_hold":
+                await interaction.message.reply(f"I've put {animeName} on hold.")
+            if status == "dropped":
+                await interaction.message.reply(f"Dropped {animeName}, sadge 😢")
 
     @ discord.ui.button(label="Plan to Watch", style=discord.ButtonStyle.blurple, emoji="➕")
-    async def planToWathc(self, button, interaction):
+    async def planToWatch(self, button, interaction):
         await self.update("plan_to_watch", interaction)
 
     @ discord.ui.button(label="Mark Complete", style=discord.ButtonStyle.green, emoji="✔️")
     async def completed(self, button, interaction):
-        await interaction.response.send_message("Wanna rate the show before marking it as complete?", view=LeaveRating(self.animeId, self.animeName, self.ctx))
+        animeId = interaction.message.embeds[0].fields[4].value
+        animeName = interaction.message.embeds[0].fields[0].value
+
+        await interaction.response.send_message("Wanna rate the show before marking it as complete?", view=LeaveRating(animeId, animeName, self.ctx))
 
     @ discord.ui.button(label="Put on Hold", style=discord.ButtonStyle.gray, emoji="⏱️")
     async def hold(self, button, interaction):
