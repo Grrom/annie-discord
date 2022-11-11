@@ -48,7 +48,15 @@ async def get_sauce(message):
             raise no_sauce from exception
 
     try:
-        sauce = (await _get_sauce())["data"][0]
+        response = await _get_sauce()
+
+        if len(response["data"]) == 0:
+            await message.reply(
+                "Hmmm... I can't seem to find this one. are you sure this is an anime screenshot?"
+            )
+            return
+
+        sauce = response["data"][0]
         embed = discord.Embed(
             title="✅ Sauce Found!",
             color=discord.Color.yellow()
