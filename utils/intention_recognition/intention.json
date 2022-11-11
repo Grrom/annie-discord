@@ -1,5 +1,17 @@
 [
   {
+    "intention": "quiz",
+    "phrases": [
+      "kanji",
+      "hiragana",
+      "katakana",
+      "quiz",
+      "give me a quiz",
+      "let me take a quiz",
+      "start a quiz"
+    ]
+  },
+  {
     "intention": "ask_sauce",
     "phrases": [
       "What's the sauce",

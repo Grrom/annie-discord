@@ -79,6 +79,10 @@ async def on_message(message):
             await saucenao.get_sauce(message)
             return
 
+        if intention == "quiz":
+            await message.reply("take quiz")
+            return
+
         if intention == "ask_recommendation":
             await message.reply("Hmmm... wait, I'll check some titles you might like.")
 
