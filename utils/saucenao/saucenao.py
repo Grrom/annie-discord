@@ -63,7 +63,7 @@ async def get_sauce(message):
 
         await message.reply(embed=embed)
 
-        if float(sauce['similarity']) < 60:
+        if float(sauce['similarity']) < 40:
             await message.reply(
                 "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
             )
