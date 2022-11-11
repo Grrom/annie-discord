@@ -55,7 +55,7 @@ async def save_quiz_result(discordId, writing_system, ordering_system, items, sc
                     "writingSystem": writing_system,
                     "type": ordering_system,
                     "items": 10,
-                    "items": score,
+                    "score": score,
                 })
             if response.status_code == 200:
                 return response.json()

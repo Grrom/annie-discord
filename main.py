@@ -24,6 +24,12 @@ async def on_ready():
     print("========================")
 
 
+@ client.command(description="Take a  hiragana, katakana or kanji quiz.")
+async def quiz(ctx):
+    await ctx.respond("Which writing system would you like to practice?", view=annie.PickWritingSystem(ctx.author.id, ctx.channel))
+    return
+
+
 @ client.command(description="Search an anime.")
 async def search(ctx, anime_title: discord.Option(str)):
     await ctx.respond("Wait lemme look it up.")
