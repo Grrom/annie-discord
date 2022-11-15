@@ -157,7 +157,7 @@ def quiz_embed(writing_system, ordering_system, current_index, current_score, qu
     )
 
     embed.add_field(
-        name="Question Number", value=current_index, inline=True)
+        name="Question Number", value=current_index+1, inline=True)
     embed.add_field(
         name="Current Score", value=current_score, inline=True)
 
@@ -221,8 +221,8 @@ class PickOrderingSystem(discord.ui.View):
         self.channel = channel
 
     async def get_quiz(self, ordering_system, interaction):
+        await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
         async with self.channel.typing():
-            await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
             questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
             if type(questions) == dict and questions.get("error") is not None:
