@@ -24,6 +24,29 @@ async def get_recommendations(discordId, offset=0):
     return recommendations
 
 
+async def get_schedule(day):
+    async def _get_schedules():
+        try:
+            response = requests.get(
+                # f"http://localhost:8080/recommendations-discord?discord_id={discordId}&offset={offset}")
+                f"https://annie-api.azurewebsites.net/getWeekSchedule")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return []
+        except Exception as e:
+            return []
+
+    schedules = await _get_schedules()
+    sched = {}
+    for _sched in schedules:
+        if _sched["day"] == day:
+            sched = _sched
+            break
+
+    return sched["schedules"]
+
+
 async def get_quiz(writing_system, ordering_system, discord_id):
     async def send_request():
         # url = f"http://localhost:8080/kana-quiz-discord?writing={writing_system}&ordering={ordering_system}&discord_id={discord_id}"
@@ -150,6 +173,14 @@ def anime_to_embed(anime, title):
     return embed
 
 
+async def simulate_typing(ctx=None, channel=None):
+    if ctx is not None:
+        await self.ctx.trigger_typing()
+    if channel is not None:
+        await channel.typing()
+    return
+
+
 def quiz_embed(writing_system, ordering_system, current_index, current_score, questions):
     embed = discord.Embed(
         title=f"{writing_system} {ordering_system} quiz.",
@@ -222,18 +253,18 @@ class PickOrderingSystem(discord.ui.View):
 
     async def get_quiz(self, ordering_system, interaction):
         await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
-        async with self.channel.typing():
-            questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
+        # async with self.channel.typing():
+        questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
-            if type(questions) == dict and questions.get("error") is not None:
-                await interaction.message.reply(questions.get("error"))
-                return
-            else:
-                _quiz_embed = quiz_embed(
-                    self.writing_system, ordering_system, 0, 0, questions)
+        if type(questions) == dict and questions.get("error") is not None:
+            await interaction.message.reply(questions.get("error"))
+            return
+        else:
+            _quiz_embed = quiz_embed(
+                self.writing_system, ordering_system, 0, 0, questions)
 
-                await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
-                return
+            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
+            return
 
     @ discord.ui.button(label="Gojuuon", style=discord.ButtonStyle.primary)
     async def gojuuon(self, button, interaction):
@@ -403,9 +434,10 @@ class LeaveRating(discord.ui.View):
 
 
 class MalActions(discord.ui.View):
-    def __init__(self, ctx):
+    def __init__(self, ctx=None, channel=None):
         super().__init__()
         self.ctx = ctx
+        self.channel = channel
 
     async def update(self, status, interaction):
         await interaction.response.send_message("Updating wait a sec.")
@@ -414,6 +446,7 @@ class MalActions(discord.ui.View):
         animeName = interaction.message.embeds[0].fields[0].value
 
         await self.ctx.trigger_typing()
+        simulate_typing(self.ctx, self.channel)
         response = await update_anime(animeId, status, 0, 0, interaction.user.id)
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])

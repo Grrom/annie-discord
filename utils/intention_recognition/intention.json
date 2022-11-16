@@ -1,5 +1,19 @@
 [
   {
+    "intention": "schedule",
+    "phrases": [
+      "schedule for today",
+      "schedules for today",
+      "what are the schedules for today",
+      "what shows are airing today",
+      "airing shows",
+      "airing today",
+      "schedule",
+      "airing",
+      "today"
+    ]
+  },
+  {
     "intention": "quiz",
     "phrases": [
       "kanji",

@@ -1,5 +1,5 @@
+from enum import Enum
 import os
-
 import discord
 
 from discord.enums import MessageType
@@ -30,8 +30,39 @@ async def quiz(ctx):
     return
 
 
+class WeekDays(Enum):
+    monday = "monday"
+    tuesday = "tuesday"
+    wednesday = "wednesday"
+    thursday = "thursday"
+    friday = "friday"
+    saturday = "saturday"
+
+
+@ client.command(description="Display the anime release schedule for the day")
+async def schedule(ctx, day: discord.Option(WeekDays,  "Which day do you want the schedule?")):
+    theDay = day.value
+    await ctx.respond(f"Checking schedule for {theDay}, please wait a bit")
+    await ctx.trigger_typing()
+
+    scheds = await annie.get_schedule(theDay)
+    scheds = sorted(scheds, key=lambda d: d['score'] or 0, reverse=True)
+
+    sample_pages = []
+
+    for result in scheds:
+        sample_pages.append(annie.anime_to_embed(
+            result, title=f"{theDay}'s scheduled shows are..."))
+
+    paginator = pages.Paginator(
+        pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx=ctx))
+
+    await paginator.respond(ctx.interaction, ephemeral=False)
+    return
+
+
 @ client.command(description="Search an anime.")
-async def search(ctx, anime_title: discord.Option(str)):
+async def search(ctx, anime_title: discord.Option(str,  "The name of the anime you want to search.")):
     await ctx.respond("Wait lemme look it up.")
     await ctx.trigger_typing()
     results = await annie.search_anime(anime_title)
@@ -87,6 +118,10 @@ async def on_message(message):
                 if response.get("trailerUrl") is not None:
                     await message.reply("Here's a trailer for it: " + response["trailerUrl"])
                 return
+            return
+
+        if intention == "schedule":
+            await message.reply("Use /schedule to get the schedule")
             return
 
         if intention in ["add_to_watchlist", "drop_from_watchlist", "put_on_hold", "mark_as_complete"]:
