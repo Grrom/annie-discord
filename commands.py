@@ -83,7 +83,7 @@ async def search(ctx, anime_title: discord.Option(str,  "The name of the anime y
     return
 
 
-@ client.command(description='Get the title of the anime based on a screenshot. Note: to attach an image instead of sending a link, use type "sauce" and attach the image.')
+@ client.command(description="Get the title of the anime based on a screenshot. Note: to attach an image instead of sending a link, use .sauce and attach the image.")
 async def sauce(ctx, image_link: discord.Option(str,  "Link to the screenshot.")):
     await saucenao.get_sauce(ctx=ctx, image_link=image_link)
     return

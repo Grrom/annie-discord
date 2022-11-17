@@ -3,7 +3,7 @@ import discord
 import re
 
 
-async def get_sauce(message):
+async def get_sauce(message=None, ctx=None, image_link=None):
 
     async def _get_sauce():
         no_link = Exception(
@@ -13,25 +13,28 @@ async def get_sauce(message):
 
         link = None
 
-        try:
-            if not message.attachments:
-                for word in message.content.replace("sauce", "").split():
-                    word = word[word.find("http"):]
-                    if "https://" in word or "http://" in word:
-                        link = word
-                        break
+        if image_link is None:
+            try:
+                if not message.attachments:
+                    for word in message.content.replace("sauce", "").split():
+                        word = word[word.find("http"):]
+                        if "https://" in word or "http://" in word:
+                            link = word
+                            break
+                    else:
+                        raise no_link
                 else:
-                    raise no_link
-            else:
-                link = message.attachments[0].url
+                    link = message.attachments[0].url
 
-        except Exception as exception:
-            raise exception
-            return
+            except Exception as exception:
+                raise exception
+                return
 
-        if link is None:
-            raise no_link
-            return
+            if link is None:
+                raise no_link
+                return
+        else:
+            link = image_link
 
         try:
             response = requests.post(
@@ -51,9 +54,14 @@ async def get_sauce(message):
         response = await _get_sauce()
 
         if len(response["data"]) == 0:
-            await message.reply(
-                "Hmmm... I can't seem to find this one. are you sure this is an anime screenshot?"
-            )
+            if message is not None:
+                await message.reply(
+                    "Hmmm... I can't seem to find this one. are you sure this is an anime screenshot?"
+                )
+            if ctx is not None:
+                await message.reply(
+                    "Hmmm... I can't seem to find this one. are you sure this is an anime screenshot?"
+                )
             return
 
         sauce = response["data"][0]
@@ -69,13 +77,24 @@ async def get_sauce(message):
         embed.add_field(
             name="Source", value=sauce["extUrls"][0] or "link not available", inline=False)
 
-        await message.reply(embed=embed)
+        if message is not None:
+            await message.reply(embed=embed)
+        if ctx is not None:
+            await ctx.respond(embed=embed)
 
         if float(sauce['similarity']) < 40:
-            await message.reply(
-                "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
-            )
+            if message is not None:
+                await message.reply(
+                    "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
+                )
+            if ctx is not None:
+                await ctx.respond(
+                    "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
+                )
 
     except Exception as exception:
-        await message.reply(str(exception))
+        if message is not None:
+            await message.reply(str(exception))
+        if ctx is not None:
+            await message.reply(str(exception))
         return
