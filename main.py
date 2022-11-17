@@ -38,8 +38,6 @@ class WeekDays(Enum):
     friday = "friday"
     saturday = "saturday"
 
-# TODO add slash commands for all the intentions
-
 
 @ client.command(description="Display the anime release schedule for the day")
 async def schedule(ctx, day: discord.Option(WeekDays,  "Which day do you want the schedule of?")):
