@@ -9,7 +9,7 @@ from utils.saucenao import saucenao
 from utils.annie_api import annie
 
 from discord.ext import commands, pages
-from utils.intention_recognition.load import get_intention
+from utils.intention_recognition.intention_classification import get_intention
 
 load_dotenv()
 
@@ -83,6 +83,26 @@ async def search(ctx, anime_title: discord.Option(str,  "The name of the anime y
     return
 
 
+@ client.command(description="Get a list of commands available.")
+async def help(ctx):
+    embed = discord.Embed(
+        title=f"Commands available:",
+        color=discord.Color.yellow()
+    )
+
+    embed.add_field(
+        name="/schedule", value="Get the airing shows for a specified day of the week.", inline=False)
+    embed.add_field(
+        name="/search", value="Search for an anime.", inline=False)
+    embed.add_field(
+        name="/quiz", value="Take a Kaji or Kana quiz.", inline=False)
+    embed.add_field(
+        name="/sauce", value="Get the title of an anime based on a screenshot, Note:  you can also use simply send .sauce and attach an image if you don't have an image link available.", inline=False)
+
+    await ctx.respond(embed=embed)
+    return
+
+
 @ client.command(description='Get the title of the anime from a screenshot. You can also type "sauce" and attach the screenshot.')
 async def sauce(ctx, image_link: discord.Option(str,  "Link to the screenshot.")):
     await saucenao.get_sauce(ctx=ctx, image_link=image_link)
@@ -105,7 +125,7 @@ async def on_message(message):
 
         intention = get_intention(message.content)
 
-        if intention == "ask_sauce":
+        if ".sauce" in message.content or intention == "ask_sauce":
             await saucenao.get_sauce(message=message)
             return
 

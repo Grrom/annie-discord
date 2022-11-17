@@ -10,7 +10,8 @@ import nltk
 stemmer = LancasterStemmer()
 
 
-with open("intention.json") as file:
+# with open("intention.json") as file:
+with open("utils/intention_recognition/intention.json") as file:
     dataset = json.load(file)
 
 intentions = list(set([a["intention"] for a in dataset]))
@@ -42,16 +43,11 @@ def score_intentions(message, intention):
     return score
 
 
-intention_scores = {}
-for intention in intention_words:
-    intention_scores[intention] = score_intentions(
-        "handle me the sauce senpai", intention)
+def get_intention(inp):
+    intention_scores = {}
+    for intention in intention_words:
+        intention_scores[intention] = score_intentions(
+            inp, intention)
 
-print("\n\n\n\nIntention scores: ")
-print(intention_scores)
-
-
-print("\nThe user's intention is: ")
-print(sorted(intention_scores.items(),
-      key=lambda item: item[1], reverse=True)[0])
-print("\n\n")
+    return sorted(intention_scores.items(),
+                  key=lambda item: item[1], reverse=True)[0][0]
