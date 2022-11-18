@@ -1,8 +1,4 @@
 from nltk.stem.lancaster import LancasterStemmer
-import random
-import tensorflow
-import tflearn
-import numpy
 import json
 import nltk
 

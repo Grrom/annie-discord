@@ -9,7 +9,7 @@ from utils.saucenao import saucenao
 from utils.annie_api import annie
 
 from discord.ext import commands, pages
-from utils.intention_recognition.intention_classification import get_intention
+from utils.intention_recognition.load import get_intention
 
 load_dotenv()
 
@@ -37,6 +37,8 @@ class WeekDays(Enum):
     thursday = "thursday"
     friday = "friday"
     saturday = "saturday"
+
+# TODO add recommend slash command
 
 
 @ client.command(description="Display the anime release schedule for the day")
