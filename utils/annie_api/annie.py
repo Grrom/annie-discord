@@ -173,14 +173,6 @@ def anime_to_embed(anime, title):
     return embed
 
 
-async def simulate_typing(ctx=None, channel=None):
-    if ctx is not None:
-        await self.ctx.trigger_typing()
-    if channel is not None:
-        await channel.typing()
-    return
-
-
 def quiz_embed(writing_system, ordering_system, current_index, current_score, questions):
     embed = discord.Embed(
         title=f"{writing_system} {ordering_system} quiz.",
@@ -220,6 +212,20 @@ class AnotherRecommendation(discord.ui.View):
         if response.get("trailerUrl") is not None:
             await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
             return
+
+    @ discord.ui.button(label="Plan to Watch", style=discord.ButtonStyle.blurple, emoji="➕")
+    async def planToWatch(self, button, interaction):
+        await interaction.response.send_message("Updating wait a sec.")
+
+        animeId = interaction.message.embeds[0].fields[4].value
+        animeName = interaction.message.embeds[0].fields[0].value
+
+        await self.channel.trigger_typing()
+        response = await update_anime(animeId, "plan_to_watch", 0, 0, interaction.user.id)
+        if response.get("error") is not None:
+            await interaction.message.reply(response["error"])
+        else:
+            await interaction.message.reply(f"I've Added {animeName} to your watchlist. Glad you like my recommendation 🥰.")
 
 
 class PickWritingSystem(discord.ui.View):
@@ -445,8 +451,7 @@ class MalActions(discord.ui.View):
         animeId = interaction.message.embeds[0].fields[4].value
         animeName = interaction.message.embeds[0].fields[0].value
 
-        await self.ctx.trigger_typing()
-        simulate_typing(self.ctx, self.channel)
+        await self.channel.trigger_typing()
         response = await update_anime(animeId, status, 0, 0, interaction.user.id)
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])
