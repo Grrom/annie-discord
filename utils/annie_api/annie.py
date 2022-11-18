@@ -202,7 +202,7 @@ def quiz_embed(writing_system, ordering_system, current_index, current_score, qu
 
 
 class AnotherRecommendation(discord.ui.View):
-    def __init__(self, index, channel):
+    def __init__(self, index, channel=None):
         super().__init__()
         self.index = index
         self.channel = channel
@@ -214,12 +214,12 @@ class AnotherRecommendation(discord.ui.View):
         await interaction.response.send_message(
             "hmm... wait I'll think of something else...")
 
-        async with self.channel.typing():
-            response = await get_recommendations(interaction.user.id, self.index)
-            await interaction.message.reply(embed=anime_to_embed(response, title="How about this?"), view=AnotherRecommendation(self.index, self.channel))
-            if response.get("trailerUrl") is not None:
-                await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
-                return
+        await self.channel.trigger_typing()
+        response = await get_recommendations(interaction.user.id, self.index)
+        await interaction.message.reply(embed=anime_to_embed(response, title="How about this?"), view=AnotherRecommendation(self.index, self.channel))
+        if response.get("trailerUrl") is not None:
+            await interaction.message.reply("Here's a trailer for it: " + response["trailerUrl"])
+            return
 
 
 class PickWritingSystem(discord.ui.View):
@@ -253,7 +253,7 @@ class PickOrderingSystem(discord.ui.View):
 
     async def get_quiz(self, ordering_system, interaction):
         await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
-        # async with self.channel.typing():
+        await self.channel.trigger_typing()
         questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
         if type(questions) == dict and questions.get("error") is not None:

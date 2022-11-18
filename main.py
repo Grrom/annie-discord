@@ -95,7 +95,7 @@ async def help(ctx):
     embed.add_field(
         name="/search", value="Search for an anime.", inline=False)
     embed.add_field(
-        name="/quiz", value="Take a Kaji or Kana quiz.", inline=False)
+        name="/quiz", value="Take a Kanji or Kana quiz.", inline=False)
     embed.add_field(
         name="/sauce", value="Get the title of an anime based on a screenshot, Note:  you can also use simply send .sauce and attach an image if you don't have an image link available.", inline=False)
 
@@ -106,6 +106,22 @@ async def help(ctx):
 @ client.command(description='Get the title of the anime from a screenshot. You can also type "sauce" and attach the screenshot.')
 async def sauce(ctx, image_link: discord.Option(str,  "Link to the screenshot.")):
     await saucenao.get_sauce(ctx=ctx, image_link=image_link)
+    return
+
+
+@ client.command(description="Get an anime recommendation.")
+async def recommend(ctx):
+    await ctx.respond("Hmmm... wait, I'll check some titles you might like.")
+
+    await ctx.trigger_typing()
+    response = await annie.get_recommendations(ctx.author.id)
+    if response is None:
+        await ctx.send_followup("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
+        return
+    await ctx.send_followup(embed=annie.anime_to_embed(response, title="I think you might like"), view=annie.AnotherRecommendation(0, ctx.channel))
+
+    if response.get("trailerUrl") is not None:
+        await ctx.send_followup("Here's a trailer for it: " + response["trailerUrl"])
     return
 
 
