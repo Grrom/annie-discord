@@ -228,6 +228,10 @@ class AnotherRecommendation(discord.ui.View):
             await interaction.message.reply(f"I've Added {animeName} to your watchlist. Glad you like my recommendation 🥰.")
 
 
+async def notU(interaction):
+    await interaction.user.send("Hello there!, I noticed that you tried to answer another user's quiz. Sorry but that's not allowed. But If you'd like to take your own quiz just let me know 😉.")
+
+
 class PickWritingSystem(discord.ui.View):
     def __init__(self, discordId, channel):
         super().__init__()
@@ -235,8 +239,10 @@ class PickWritingSystem(discord.ui.View):
         self.channel = channel
 
     async def choose_ordering_system(self, interaction, writing_system):
-        if self.discordId == interaction.user.id:
-            await interaction.response.send_message(f"Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel))
+        if self.discordId != interaction.user.id:
+            await notU(interaction)
+            return
+        await interaction.response.send_message(f"Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.discordId))
 
     @ discord.ui.button(label="Hiragana", style=discord.ButtonStyle.primary)
     async def hiragana(self, button, interaction):
@@ -252,12 +258,16 @@ class PickWritingSystem(discord.ui.View):
 
 
 class PickOrderingSystem(discord.ui.View):
-    def __init__(self, writing_system, channel):
+    def __init__(self, writing_system, channel, userId):
         super().__init__()
         self.writing_system = writing_system
         self.channel = channel
+        self.userId = userId
 
     async def get_quiz(self, ordering_system, interaction):
+        if self.userId != interaction.user.id:
+            await notU(interaction)
+            return
         await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
         await self.channel.trigger_typing()
         questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
@@ -269,7 +279,7 @@ class PickOrderingSystem(discord.ui.View):
             _quiz_embed = quiz_embed(
                 self.writing_system, ordering_system, 0, 0, questions)
 
-            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
+            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.userId))
             return
 
     @ discord.ui.button(label="Gojuuon", style=discord.ButtonStyle.primary)
@@ -286,13 +296,14 @@ class PickOrderingSystem(discord.ui.View):
 
 
 class QuizChoices(discord.ui.View):
-    def __init__(self, questions, current_index,  current_score, writing_system, ordering_system):
+    def __init__(self, questions, current_index,  current_score, writing_system, ordering_system, userId):
         super().__init__()
         self.questions = questions
         self.current_index = current_index
         self.current_score = current_score
         self.writing_system = writing_system
         self.ordering_system = ordering_system
+        self.userId = userId
 
         choices_key = "romajiChoices"
         if writing_system == "kanji":
@@ -304,6 +315,10 @@ class QuizChoices(discord.ui.View):
         self.choice4.label = questions[current_index][choices_key][3]
 
     async def next_question(self, answer, interaction):
+        if self.userId != interaction.user.id:
+            await notU(interaction)
+            return
+
         if self.questions[self.current_index]["correctAnswer"] == answer:
             await interaction.response.send_message("Correct!")
             self.current_score += 1
@@ -322,7 +337,7 @@ class QuizChoices(discord.ui.View):
         else:
             _quiz_embed = quiz_embed(
                 self.writing_system, self.ordering_system, self.current_index, self.current_score, self.questions)
-            await interaction.message.reply(f"Next Question:", embed=_quiz_embed, view=QuizChoices(self.questions, self.current_index, self.current_score, self.writing_system, self.ordering_system))
+            await interaction.message.reply(f"Next Question:", embed=_quiz_embed, view=QuizChoices(self.questions, self.current_index, self.current_score, self.writing_system, self.ordering_system, self.userId))
 
     @ discord.ui.button(label="1", style=discord.ButtonStyle.primary)
     async def choice1(self, button, interaction):
