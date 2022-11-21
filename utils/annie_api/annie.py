@@ -233,16 +233,16 @@ async def notU(interaction):
 
 
 class PickWritingSystem(discord.ui.View):
-    def __init__(self, discordId, channel):
+    def __init__(self, userId, channel):
         super().__init__()
-        self.discordId = discordId
+        self.userId = userId
         self.channel = channel
 
     async def choose_ordering_system(self, interaction, writing_system):
-        if self.discordId != interaction.user.id:
+        if self.userId != interaction.user.id:
             await notU(interaction)
             return
-        await interaction.response.send_message(f"Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.discordId))
+        await interaction.response.send_message(f"<@{self.userId}> Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.userId))
 
     @ discord.ui.button(label="Hiragana", style=discord.ButtonStyle.primary)
     async def hiragana(self, button, interaction):
@@ -254,7 +254,7 @@ class PickWritingSystem(discord.ui.View):
 
     @ discord.ui.button(label="Kanji", style=discord.ButtonStyle.primary)
     async def kanji(self, button, interaction):
-        await interaction.response.send_message("Choose Quiz", view=PickKanjiReading("kanji", self.channel))
+        await interaction.response.send_message(f"<@{self.userId}> Choose Quiz", view=PickKanjiReading("kanji", self.channel, self.userId))
 
 
 class PickOrderingSystem(discord.ui.View):
@@ -268,7 +268,7 @@ class PickOrderingSystem(discord.ui.View):
         if self.userId != interaction.user.id:
             await notU(interaction)
             return
-        await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
+        await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
         await self.channel.trigger_typing()
         questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
@@ -279,7 +279,7 @@ class PickOrderingSystem(discord.ui.View):
             _quiz_embed = quiz_embed(
                 self.writing_system, ordering_system, 0, 0, questions)
 
-            await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.userId))
+            await interaction.message.reply(f"<@{self.userId}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.userId))
             return
 
     @ discord.ui.button(label="Gojuuon", style=discord.ButtonStyle.primary)
@@ -320,10 +320,10 @@ class QuizChoices(discord.ui.View):
             return
 
         if self.questions[self.current_index]["correctAnswer"] == answer:
-            await interaction.response.send_message("Correct!")
+            await interaction.response.send_message(f"<@{self.userId}> Correct!")
             self.current_score += 1
         else:
-            await interaction.response.send_message(f"the answer is {self.questions[self.current_index]['correctAnswer']}")
+            await interaction.response.send_message(f"<@{self.userId}> the answer is {self.questions[self.current_index]['correctAnswer']}")
 
         self.current_index += 1
         if self.current_index == 10:
@@ -331,13 +331,13 @@ class QuizChoices(discord.ui.View):
                 title=f"You got: {self.current_score} out of 10!",
                 color=discord.Color.green()
             )
-            await interaction.message.reply(f"Quiz Done: ", embed=score_embed)
+            await interaction.message.reply(f"<@{self.userId}> Quiz Done: ", embed=score_embed)
             await save_quiz_result(interaction.user.id, self.writing_system,
                                    self.ordering_system, self.current_index, self.current_score)
         else:
             _quiz_embed = quiz_embed(
                 self.writing_system, self.ordering_system, self.current_index, self.current_score, self.questions)
-            await interaction.message.reply(f"Next Question:", embed=_quiz_embed, view=QuizChoices(self.questions, self.current_index, self.current_score, self.writing_system, self.ordering_system, self.userId))
+            await interaction.message.reply(f"<@{self.userId}> Next Question:", embed=_quiz_embed, view=QuizChoices(self.questions, self.current_index, self.current_score, self.writing_system, self.ordering_system, self.userId))
 
     @ discord.ui.button(label="1", style=discord.ButtonStyle.primary)
     async def choice1(self, button, interaction):
@@ -357,14 +357,15 @@ class QuizChoices(discord.ui.View):
 
 
 class PickKanjiReading(discord.ui.View):
-    def __init__(self, writing_system, channel):
+    def __init__(self, writing_system, channel, userId):
         super().__init__()
         self.writing_system = writing_system
         self.channel = channel
+        self.userId = userId
 
     async def get_quiz(self, ordering_system, interaction):
         async with self.channel.typing():
-            await interaction.response.send_message(f"Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
+            await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
             questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
             if type(questions) == dict and questions.get("error") is not None:
@@ -374,7 +375,7 @@ class PickKanjiReading(discord.ui.View):
                 _quiz_embed = quiz_embed(
                     self.writing_system, ordering_system, 0, 0, questions)
 
-                await interaction.message.reply("First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system))
+                await interaction.message.reply(f"<@{self.userId}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.userId))
                 return
 
     @ discord.ui.button(label="Onyomi", style=discord.ButtonStyle.primary)
