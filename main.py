@@ -97,6 +97,8 @@ async def help(ctx):
     embed.add_field(
         name="/quiz", value="Take a Kanji or Kana quiz.", inline=False)
     embed.add_field(
+        name="/recommend", value="Get an anime recommendation.", inline=False)
+    embed.add_field(
         name="/sauce", value="Get the title of an anime based on a screenshot, Note:  you can also use simply send .sauce and attach an image if you don't have an image link available.", inline=False)
 
     await ctx.respond(embed=embed)
