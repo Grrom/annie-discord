@@ -4,6 +4,10 @@ import re
 
 
 async def get_sauce(message=None, ctx=None, image_link=None):
+    if message is not None:
+        await message.reply("Hmmm... lemme check.")
+    if ctx is not None:
+        await ctx.respond("Hmmm... lemme check.")
 
     async def _get_sauce():
         no_link = Exception(
@@ -80,7 +84,7 @@ async def get_sauce(message=None, ctx=None, image_link=None):
         if message is not None:
             await message.reply(embed=embed)
         if ctx is not None:
-            await ctx.respond(embed=embed)
+            await ctx.send_followup(embed=embed)
 
         if float(sauce['similarity']) < 40:
             if message is not None:
@@ -88,7 +92,7 @@ async def get_sauce(message=None, ctx=None, image_link=None):
                     "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
                 )
             if ctx is not None:
-                await ctx.respond(
+                await ctx.send_followup(
                     "Sorry I couldn't find good matches, are you sure this is an anime screenshot?"
                 )
 
@@ -96,5 +100,5 @@ async def get_sauce(message=None, ctx=None, image_link=None):
         if message is not None:
             await message.reply(str(exception))
         if ctx is not None:
-            await message.reply(str(exception))
+            await ctx.send_followup(str(exception))
         return

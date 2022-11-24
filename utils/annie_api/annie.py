@@ -254,6 +254,7 @@ class PickWritingSystem(discord.ui.View):
 
     @ discord.ui.button(label="Kanji", style=discord.ButtonStyle.primary)
     async def kanji(self, button, interaction):
+        interaction.edit_original_message("DONE")
         await interaction.response.send_message(f"<@{self.userId}> Choose Quiz", view=PickKanjiReading("kanji", self.channel, self.userId))
 
 
