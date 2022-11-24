@@ -225,7 +225,7 @@ class AnotherRecommendation(discord.ui.View):
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])
         else:
-            await interaction.message.reply(f"I've Added {animeName} to your watchlist. Glad you like my recommendation 🥰.")
+            await interaction.message.reply(f"I've Added {animeName} to your watchlist. Glad you liked my recommendation 🥰.")
 
 
 async def notU(interaction):
