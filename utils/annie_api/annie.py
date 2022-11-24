@@ -249,7 +249,7 @@ async def update_message(interaction, choice, extra_field={}, original_embed=Non
 
 class PickWritingSystem(discord.ui.View):
     def __init__(self, userId, channel=None, ctx=None):
-        super().__init__()
+        super().__init__(timeout=10)
         self.userId = userId
         self.channel = channel
         self.ctx = ctx
@@ -260,6 +260,9 @@ class PickWritingSystem(discord.ui.View):
             return
         await update_message(interaction, writing_system)
         await interaction.response.send_message(f"<@{self.userId}> Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.userId, self.ctx))
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
 
     @ discord.ui.button(label="Hiragana", style=discord.ButtonStyle.primary)
     async def hiragana(self, button, interaction):
@@ -285,6 +288,9 @@ class PickOrderingSystem(discord.ui.View):
         self.channel = channel
         self.userId = userId
         self.ctx = ctx
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
 
     async def get_quiz(self, ordering_system, interaction):
         if self.userId != interaction.user.id:
@@ -342,6 +348,9 @@ class QuizChoices(discord.ui.View):
         self.choice3.label = questions[current_index][choices_key][2]
         self.choice4.label = questions[current_index][choices_key][3]
 
+    async def on_timeout(self):
+        await self.message.edit(view=None)
+
     async def next_question(self, answer, interaction):
         if self.userId != interaction.user.id:
             await notU(interaction)
@@ -391,6 +400,9 @@ class PickKanjiReading(discord.ui.View):
         self.channel = channel
         self.userId = userId
         self.ctx = ctx
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
 
     async def get_quiz(self, reading, interaction):
         if self.userId != interaction.user.id:
