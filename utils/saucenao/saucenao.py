@@ -5,11 +5,11 @@ import re
 
 async def get_sauce(message=None, ctx=None, image_link=None):
     if message is not None:
-        await message.channel.trigger_typing()
         await message.reply("Hmmm... wait, lemme check.")
+        await message.channel.trigger_typing()
     if ctx is not None:
-        await ctx.trigger_typing()
         await ctx.respond("Hmmm... wait, lemme check.")
+        await ctx.trigger_typing()
 
     async def _get_sauce():
         no_link = Exception(
@@ -70,18 +70,31 @@ async def get_sauce(message=None, ctx=None, image_link=None):
                 )
             return
 
-        sauce = response["data"][0]
+        sauce = {}
+        for item in response["data"]:
+            if item.get("extUrls") is not None:
+                sauce = item
+                break
+
         embed = discord.Embed(
             title="✅ Sauce Found!",
             color=discord.Color.yellow()
         )
         embed.set_thumbnail(url=sauce["thumbnail"])
-        embed.add_field(
-            name="Title", value=sauce["sauce"] or "unknown", inline=True)
+
+        if sauce.get("sauce") is not None:
+            embed.add_field(
+                name="Title", value=sauce["sauce"], inline=True)
+
         embed.add_field(name="Similarity",
                         value=f"{sauce['similarity']}%", inline=True)
-        embed.add_field(
-            name="Source", value=sauce["extUrls"][0] or "link not available", inline=False)
+
+        if sauce.get("extUrls") is not None:
+            embed.add_field(
+                name="Source", value=sauce["extUrls"][0], inline=False)
+        else:
+            embed.add_field(
+                name="Source", value="link not available", inline=False)
 
         if message is not None:
             await message.reply(embed=embed)
