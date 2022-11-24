@@ -199,6 +199,9 @@ class AnotherRecommendation(discord.ui.View):
         self.index = index
         self.channel = channel
 
+    async def on_timeout(self):
+        await self.message.edit(view=None)
+
     @ discord.ui.button(label="Get another recommendation.", style=discord.ButtonStyle.primary, emoji="⏭️")
     async def button_callback(self, button, interaction):
         self.index += 1
@@ -484,18 +487,30 @@ class PickKanjiReading(discord.ui.View):
 
 
 class LeaveRating(discord.ui.View):
-
     def __init__(self, animeId, animeName, ctx):
-        super().__init__()
+        super().__init__(timeout=1)
         self.animeId = animeId
         self.animeName = animeName
         self.ctx = ctx
+        self.no_response = True
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
+
+        if self.no_response:
+            embed = discord.Embed(
+                title=f"{self.ctx.author.name} took too long to respond.",
+                color=discord.Color.yellow()
+            )
+            await self.message.edit(embed=embed)
 
     async def update_completed(self, score, interaction):
+        self.no_response = False
+
         await interaction.response.send_message("Updating wait a sec.")
 
         await self.ctx.trigger_typing()
-        response = await update_anime(self.animeId, "completed", score, 999, interaction.user.id)
+        response = await update_anime(self.animeId, "completed", score, 999999, interaction.user.id)
 
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])
@@ -548,10 +563,9 @@ class LeaveRating(discord.ui.View):
 
 
 class MalActions(discord.ui.View):
-    def __init__(self, ctx=None, channel=None):
+    def __init__(self, ctx):
         super().__init__()
         self.ctx = ctx
-        self.channel = channel
 
     async def update(self, status, interaction):
         await interaction.response.send_message("Updating wait a sec.")
@@ -559,10 +573,7 @@ class MalActions(discord.ui.View):
         animeId = interaction.message.embeds[0].fields[4].value
         animeName = interaction.message.embeds[0].fields[0].value
 
-        if self.channel is not None:
-            await self.channel.trigger_typing()
-        if self.ctx is not None:
-            await self.ctx.trigger_typing()
+        await self.ctx.trigger_typing()
 
         response = await update_anime(animeId, status, 0, 0, interaction.user.id)
         if response.get("error") is not None:

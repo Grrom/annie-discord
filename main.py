@@ -57,7 +57,7 @@ async def schedule(ctx, day: discord.Option(WeekDays,  "Which day do you want th
             result, title=f"{theDay}'s scheduled shows are..."))
 
     paginator = pages.Paginator(
-        pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx=ctx))
+        pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx), disable_on_timeout=True)
 
     await paginator.respond(ctx.interaction, ephemeral=False)
     return
@@ -65,6 +65,7 @@ async def schedule(ctx, day: discord.Option(WeekDays,  "Which day do you want th
 
 @ client.command(description="Search an anime.")
 async def search(ctx, anime_title: discord.Option(str,  "The name of the anime you want to search.")):
+
     await ctx.respond("Wait lemme look it up.")
     await ctx.trigger_typing()
     results = await annie.search_anime(anime_title)
@@ -78,8 +79,8 @@ async def search(ctx, anime_title: discord.Option(str,  "The name of the anime y
         sample_pages.append(annie.anime_to_embed(result, title="Found it!"))
 
     paginator = pages.Paginator(
-        pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx))
-    await paginator.respond(ctx.interaction, ephemeral=False)
+        pages=sample_pages, loop_pages=True, custom_view=annie.MalActions(ctx), disable_on_timeout=True)
+    await paginator.respond(ctx.interaction)
     return
 
 
