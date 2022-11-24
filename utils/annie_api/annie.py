@@ -468,7 +468,11 @@ class MalActions(discord.ui.View):
         animeId = interaction.message.embeds[0].fields[4].value
         animeName = interaction.message.embeds[0].fields[0].value
 
-        await self.channel.trigger_typing()
+        if self.channel is not None:
+            await self.channel.trigger_typing()
+        if self.ctx is not None:
+            await self.ctx.trigger_typing()
+
         response = await update_anime(animeId, status, 0, 0, interaction.user.id)
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])
