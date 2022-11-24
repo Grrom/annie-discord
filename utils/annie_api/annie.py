@@ -248,21 +248,30 @@ async def update_message(interaction, choice, extra_field={}, original_embed=Non
 
 
 class PickWritingSystem(discord.ui.View):
-    def __init__(self, userId, channel=None, ctx=None):
-        super().__init__(timeout=10)
-        self.userId = userId
+    def __init__(self, user, channel=None, ctx=None):
+        super().__init__()
+        self.user = user
         self.channel = channel
         self.ctx = ctx
+        self.no_response = True
 
     async def choose_ordering_system(self, interaction, writing_system):
-        if self.userId != interaction.user.id:
+        self.no_response = False
+        if self.user.id != interaction.user.id:
             await notU(interaction)
             return
         await update_message(interaction, writing_system)
-        await interaction.response.send_message(f"<@{self.userId}> Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.userId, self.ctx))
+        await interaction.response.send_message(f"<@{self.user.id}> Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.user, self.ctx))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
+
+        if self.no_response:
+            embed = discord.Embed(
+                title=f"{self.user.name} took too long to respond.",
+                color=discord.Color.yellow()
+            )
+            await self.message.edit(embed=embed)
 
     @ discord.ui.button(label="Hiragana", style=discord.ButtonStyle.primary)
     async def hiragana(self, button, interaction):
@@ -274,30 +283,41 @@ class PickWritingSystem(discord.ui.View):
 
     @ discord.ui.button(label="Kanji", style=discord.ButtonStyle.primary)
     async def kanji(self, button, interaction):
-        if self.userId != interaction.user.id:
+        self.no_response = False
+        if self.user.id != interaction.user.id:
             await notU(interaction)
             return
         await update_message(interaction, "kanji")
-        await interaction.response.send_message(f"<@{self.userId}> Choose Quiz", view=PickKanjiReading("kanji", self.channel, self.userId, self.ctx))
+        await interaction.response.send_message(f"<@{self.user.id}> Choose Quiz", view=PickKanjiReading("kanji", self.channel, self.user, self.ctx))
 
 
 class PickOrderingSystem(discord.ui.View):
-    def __init__(self, writing_system, channel, userId, ctx):
+    def __init__(self, writing_system, channel, user, ctx):
         super().__init__()
         self.writing_system = writing_system
         self.channel = channel
-        self.userId = userId
+        self.user = user
         self.ctx = ctx
+        self.no_response = True
 
     async def on_timeout(self):
         await self.message.edit(view=None)
 
+        if self.no_response:
+            embed = discord.Embed(
+                title=f"{self.user.name} took too long to respond.",
+                color=discord.Color.yellow()
+            )
+            await self.message.edit(embed=embed)
+
     async def get_quiz(self, ordering_system, interaction):
-        if self.userId != interaction.user.id:
+        self.no_response = False
+
+        if self.user.id != interaction.user.id:
             await notU(interaction)
             return
         await update_message(interaction, ordering_system)
-        await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
+        await interaction.response.send_message(f"<@{self.user.id}> Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
 
         if self.channel is not None:
             await self.channel.trigger_typing()
@@ -313,7 +333,7 @@ class PickOrderingSystem(discord.ui.View):
             _quiz_embed = quiz_embed(
                 self.writing_system, ordering_system, 0, 0, questions)
 
-            await interaction.message.reply(f"<@{self.userId}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.userId))
+            await interaction.message.reply(f"<@{self.user.id}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.user))
             return
 
     @ discord.ui.button(label="Gojuuon", style=discord.ButtonStyle.primary)
@@ -330,14 +350,15 @@ class PickOrderingSystem(discord.ui.View):
 
 
 class QuizChoices(discord.ui.View):
-    def __init__(self, questions, current_index,  current_score, writing_system, ordering_system, userId):
+    def __init__(self, questions, current_index,  current_score, writing_system, ordering_system, user):
         super().__init__()
         self.questions = questions
         self.current_index = current_index
         self.current_score = current_score
         self.writing_system = writing_system
         self.ordering_system = ordering_system
-        self.userId = userId
+        self.user = user
+        self.no_response = True
 
         choices_key = "romajiChoices"
         if writing_system == "kanji":
@@ -351,8 +372,17 @@ class QuizChoices(discord.ui.View):
     async def on_timeout(self):
         await self.message.edit(view=None)
 
+        if self.no_response:
+            embed = discord.Embed(
+                title=f"{self.user.name} took too long to respond.",
+                color=discord.Color.yellow()
+            )
+            await self.message.edit(embed=embed)
+
     async def next_question(self, answer, interaction):
-        if self.userId != interaction.user.id:
+        self.no_response = False
+
+        if self.user.id != interaction.user.id:
             await notU(interaction)
             return
 
@@ -368,13 +398,13 @@ class QuizChoices(discord.ui.View):
                 title=f"{interaction.user.name} got: {self.current_score} out of 10!",
                 color=discord.Color.green()
             )
-            await interaction.message.reply(f"<@{self.userId}> Quiz Done: ", embed=score_embed)
+            await interaction.message.reply(f"<@{self.user.id}> Quiz Done: ", embed=score_embed)
             await save_quiz_result(interaction.user.id, self.writing_system,
                                    self.ordering_system, self.current_index, self.current_score)
         else:
             _quiz_embed = quiz_embed(
                 self.writing_system, self.ordering_system, self.current_index, self.current_score, self.questions)
-            await interaction.message.reply(f"<@{self.userId}> Next Question:", embed=_quiz_embed, view=QuizChoices(self.questions, self.current_index, self.current_score, self.writing_system, self.ordering_system, self.userId))
+            await interaction.message.reply(f"<@{self.user.id}> Next Question:", embed=_quiz_embed, view=QuizChoices(self.questions, self.current_index, self.current_score, self.writing_system, self.ordering_system, self.user))
 
     @ discord.ui.button(label="1", style=discord.ButtonStyle.primary)
     async def choice1(self, button, interaction):
@@ -394,24 +424,34 @@ class QuizChoices(discord.ui.View):
 
 
 class PickKanjiReading(discord.ui.View):
-    def __init__(self, writing_system, channel, userId, ctx):
+    def __init__(self, writing_system, channel, user, ctx):
         super().__init__()
         self.writing_system = writing_system
         self.channel = channel
-        self.userId = userId
+        self.user = user
         self.ctx = ctx
+        self.no_response = True
 
     async def on_timeout(self):
         await self.message.edit(view=None)
 
+        if self.no_response:
+            embed = discord.Embed(
+                title=f"{self.user.name} took too long to respond.",
+                color=discord.Color.yellow()
+            )
+            await self.message.edit(embed=embed)
+
     async def get_quiz(self, reading, interaction):
-        if self.userId != interaction.user.id:
+        self.no_response = False
+
+        if self.user.id != interaction.user.id:
             await notU(interaction)
             return
 
         await update_message(interaction, reading)
 
-        await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {reading} Quiz pls wait a bit...")
+        await interaction.response.send_message(f"<@{self.user.id}> Preparing {self.writing_system} {reading} Quiz pls wait a bit...")
 
         if self.channel is not None:
             await self.channel.trigger_typing()
@@ -427,7 +467,7 @@ class PickKanjiReading(discord.ui.View):
             _quiz_embed = quiz_embed(
                 self.writing_system, reading, 0, 0, questions)
 
-            await interaction.message.reply(f"<@{self.userId}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, reading, self.userId))
+            await interaction.message.reply(f"<@{self.user.id}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, reading, self.user))
             return
 
     @ discord.ui.button(label="Onyomi", style=discord.ButtonStyle.primary)
