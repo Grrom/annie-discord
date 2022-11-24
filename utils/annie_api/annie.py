@@ -232,17 +232,34 @@ async def notU(interaction):
     await interaction.user.send("Hello there!, I noticed that you tried to answer another user's quiz. Sorry but that's not allowed. But If you'd like to take your own quiz just let me know 😉.")
 
 
+async def update_message(interaction, choice, extra_field={}, original_embed=None):
+    await interaction.message.edit(view=None)
+    if original_embed is None:
+        original_embed = discord.Embed(
+            title=f"{interaction.user.name} chose: {choice}",
+            color=discord.Color.yellow()
+        )
+
+    if extra_field.get("name") is not None and extra_field.get("value") is not None:
+        original_embed.add_field(
+            name=extra_field["name"], value=extra_field["value"], inline=False)
+
+    await interaction.message.edit(embed=original_embed)
+
+
 class PickWritingSystem(discord.ui.View):
-    def __init__(self, userId, channel):
+    def __init__(self, userId, channel=None, ctx=None):
         super().__init__()
         self.userId = userId
         self.channel = channel
+        self.ctx = ctx
 
     async def choose_ordering_system(self, interaction, writing_system):
         if self.userId != interaction.user.id:
             await notU(interaction)
             return
-        await interaction.response.send_message(f"<@{self.userId}> Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.userId))
+        await update_message(interaction, writing_system)
+        await interaction.response.send_message(f"<@{self.userId}> Choose {writing_system} Quiz", view=PickOrderingSystem(writing_system, self.channel, self.userId, self.ctx))
 
     @ discord.ui.button(label="Hiragana", style=discord.ButtonStyle.primary)
     async def hiragana(self, button, interaction):
@@ -254,23 +271,33 @@ class PickWritingSystem(discord.ui.View):
 
     @ discord.ui.button(label="Kanji", style=discord.ButtonStyle.primary)
     async def kanji(self, button, interaction):
-        interaction.edit_original_message("DONE")
-        await interaction.response.send_message(f"<@{self.userId}> Choose Quiz", view=PickKanjiReading("kanji", self.channel, self.userId))
+        if self.userId != interaction.user.id:
+            await notU(interaction)
+            return
+        await update_message(interaction, "kanji")
+        await interaction.response.send_message(f"<@{self.userId}> Choose Quiz", view=PickKanjiReading("kanji", self.channel, self.userId, self.ctx))
 
 
 class PickOrderingSystem(discord.ui.View):
-    def __init__(self, writing_system, channel, userId):
+    def __init__(self, writing_system, channel, userId, ctx):
         super().__init__()
         self.writing_system = writing_system
         self.channel = channel
         self.userId = userId
+        self.ctx = ctx
 
     async def get_quiz(self, ordering_system, interaction):
         if self.userId != interaction.user.id:
             await notU(interaction)
             return
+        await update_message(interaction, ordering_system)
         await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
-        await self.channel.trigger_typing()
+
+        if self.channel is not None:
+            await self.channel.trigger_typing()
+        if self.ctx is not None:
+            await self.ctx.trigger_typing()
+
         questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
 
         if type(questions) == dict and questions.get("error") is not None:
@@ -321,15 +348,15 @@ class QuizChoices(discord.ui.View):
             return
 
         if self.questions[self.current_index]["correctAnswer"] == answer:
-            await interaction.response.send_message(f"<@{self.userId}> Correct!")
+            await update_message(interaction, answer, extra_field={"name": f"{interaction.user.name} chose: {answer}", "value": "Correct"}, original_embed=interaction.message.embeds[0])
             self.current_score += 1
         else:
-            await interaction.response.send_message(f"<@{self.userId}> the answer is {self.questions[self.current_index]['correctAnswer']}")
+            await update_message(interaction, answer, extra_field={"name": f"{interaction.user.name} chose: {answer}", "value": f"Wrong, the answer is {self.questions[self.current_index]['correctAnswer']}"}, original_embed=interaction.message.embeds[0])
 
         self.current_index += 1
         if self.current_index == 10:
             score_embed = discord.Embed(
-                title=f"You got: {self.current_score} out of 10!",
+                title=f"{interaction.user.name} got: {self.current_score} out of 10!",
                 color=discord.Color.green()
             )
             await interaction.message.reply(f"<@{self.userId}> Quiz Done: ", embed=score_embed)
@@ -358,26 +385,38 @@ class QuizChoices(discord.ui.View):
 
 
 class PickKanjiReading(discord.ui.View):
-    def __init__(self, writing_system, channel, userId):
+    def __init__(self, writing_system, channel, userId, ctx):
         super().__init__()
         self.writing_system = writing_system
         self.channel = channel
         self.userId = userId
+        self.ctx = ctx
 
-    async def get_quiz(self, ordering_system, interaction):
-        async with self.channel.typing():
-            await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {ordering_system} Quiz pls wait a bit...")
-            questions = await get_quiz(self.writing_system, ordering_system, interaction.user.id)
+    async def get_quiz(self, reading, interaction):
+        if self.userId != interaction.user.id:
+            await notU(interaction)
+            return
 
-            if type(questions) == dict and questions.get("error") is not None:
-                await interaction.message.reply(questions.get("error"))
-                return
-            else:
-                _quiz_embed = quiz_embed(
-                    self.writing_system, ordering_system, 0, 0, questions)
+        await update_message(interaction, reading)
 
-                await interaction.message.reply(f"<@{self.userId}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, ordering_system, self.userId))
-                return
+        await interaction.response.send_message(f"<@{self.userId}> Preparing {self.writing_system} {reading} Quiz pls wait a bit...")
+
+        if self.channel is not None:
+            await self.channel.trigger_typing()
+        if self.ctx is not None:
+            await self.ctx.trigger_typing()
+
+        questions = await get_quiz(self.writing_system, reading, interaction.user.id)
+
+        if type(questions) == dict and questions.get("error") is not None:
+            await interaction.message.reply(questions.get("error"))
+            return
+        else:
+            _quiz_embed = quiz_embed(
+                self.writing_system, reading, 0, 0, questions)
+
+            await interaction.message.reply(f"<@{self.userId}> First Question:", embed=_quiz_embed, view=QuizChoices(questions, 0, 0, self.writing_system, reading, self.userId))
+            return
 
     @ discord.ui.button(label="Onyomi", style=discord.ButtonStyle.primary)
     async def onyomi(self, button, interaction):

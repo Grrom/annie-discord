@@ -26,7 +26,7 @@ async def on_ready():
 
 @ client.command(description="Take a  hiragana, katakana or kanji quiz.")
 async def quiz(ctx):
-    await ctx.respond(f"<@{ctx.author.id}> Which writing system would you like to practice?", view=annie.PickWritingSystem(ctx.author.id, ctx.channel))
+    await ctx.respond(f"<@{ctx.author.id}> Which writing system would you like to practice?", view=annie.PickWritingSystem(userId=ctx.author.id, ctx=ctx))
     return
 
 
@@ -148,7 +148,7 @@ async def on_message(message):
             return
 
         if intention == "quiz":
-            await message.reply(f"<@{message.author.id}> Which writing system would you like to practice?", view=annie.PickWritingSystem(message.author.id, message.channel))
+            await message.reply(f"<@{message.author.id}> Which writing system would you like to practice?", view=annie.PickWritingSystem(userId=message.author.id, channel=message.channel))
             return
 
         if intention == "ask_recommendation":
