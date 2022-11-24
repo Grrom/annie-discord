@@ -5,8 +5,10 @@ import re
 
 async def get_sauce(message=None, ctx=None, image_link=None):
     if message is not None:
+        await message.channel.trigger_typing()
         await message.reply("Hmmm... lemme check.")
     if ctx is not None:
+        await ctx.trigger_typing()
         await ctx.respond("Hmmm... lemme check.")
 
     async def _get_sauce():

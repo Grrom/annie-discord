@@ -183,7 +183,7 @@ async def on_message(message):
             return
 
         if intention == "unsure":
-            await message.reply("I have no Idea what you're talking about.")
+            await message.reply("I have no Idea what you're talking about 😂.")
 
         return
 
