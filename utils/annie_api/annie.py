@@ -235,6 +235,10 @@ async def notU(interaction):
     await interaction.user.send("Hello there!, I noticed that you tried to answer another user's quiz. Sorry but that's not allowed. But If you'd like to take your own quiz just let me know 😉.")
 
 
+async def notURating(interaction):
+    await interaction.user.send("Hello there!, I noticed that you tried to pick a rating for someone else in the server. Sorry but that's not allowed. You have to click the 'mark as completed' button first and I will also give you an option to leave a rating for the show.")
+
+
 async def update_message(interaction, choice, extra_field={}, original_embed=None):
     await interaction.message.edit(view=None)
     if original_embed is None:
@@ -487,12 +491,13 @@ class PickKanjiReading(discord.ui.View):
 
 
 class LeaveRating(discord.ui.View):
-    def __init__(self, animeId, animeName, ctx):
-        super().__init__(timeout=1)
+    def __init__(self, animeId, animeName, ctx, userId):
+        super().__init__()
         self.animeId = animeId
         self.animeName = animeName
         self.ctx = ctx
         self.no_response = True
+        self.userId = userId
 
     async def on_timeout(self):
         await self.message.edit(view=None)
@@ -505,8 +510,13 @@ class LeaveRating(discord.ui.View):
             await self.message.edit(embed=embed)
 
     async def update_completed(self, score, interaction):
+        if self.userId != interaction.user.id:
+            await notURating(interaction)
+            return
+
         self.no_response = False
 
+        await self.message.edit(view=None)
         await interaction.response.send_message("Updating wait a sec.")
 
         await self.ctx.trigger_typing()
@@ -515,7 +525,14 @@ class LeaveRating(discord.ui.View):
         if response.get("error") is not None:
             await interaction.message.reply(response["error"])
         else:
-            await interaction.message.reply(f"Marked {self.animeName} as completed.")
+            await interaction.message.reply(f"<@{interaction.user.id}> Marked {self.animeName} as completed.")
+
+        if score is not 0:
+            embed = discord.Embed(
+                title=f"Rated: {score} ⭐",
+                color=discord.Color.yellow()
+            )
+            await self.message.edit(embed=embed)
 
     @ discord.ui.button(label="No rating", style=discord.ButtonStyle.primary, emoji="🙅🏻‍♂️")
     async def no_rating(self, button, interaction):
@@ -580,11 +597,11 @@ class MalActions(discord.ui.View):
             await interaction.message.reply(response["error"])
         else:
             if status == "plan_to_watch":
-                await interaction.message.reply(f"I've Added {animeName} to your watchlist.")
+                await interaction.message.reply(f"<@{interaction.user.id}> I've Added {animeName} to your watchlist.")
             if status == "on_hold":
-                await interaction.message.reply(f"I've put {animeName} on hold.")
+                await interaction.message.reply(f"<@{interaction.user.id}> I've put {animeName} on hold.")
             if status == "dropped":
-                await interaction.message.reply(f"Dropped {animeName}, sadge 😢")
+                await interaction.message.reply(f"<@{interaction.user.id}> Dropped {animeName}, sadge 😢")
 
     @ discord.ui.button(label="Plan to Watch", style=discord.ButtonStyle.blurple, emoji="➕")
     async def planToWatch(self, button, interaction):
@@ -595,7 +612,7 @@ class MalActions(discord.ui.View):
         animeId = interaction.message.embeds[0].fields[4].value
         animeName = interaction.message.embeds[0].fields[0].value
 
-        await interaction.response.send_message("Wanna rate the show before marking it as complete?", view=LeaveRating(animeId, animeName, self.ctx))
+        await interaction.response.send_message(f"<@{interaction.user.id}> Wanna rate the show before marking it as complete?", view=LeaveRating(animeId, animeName, self.ctx, interaction.user.id))
 
     @ discord.ui.button(label="Put on Hold", style=discord.ButtonStyle.gray, emoji="⏱️")
     async def hold(self, button, interaction):
