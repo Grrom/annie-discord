@@ -553,7 +553,7 @@ class LeaveRating(discord.ui.View):
         else:
             await interaction.message.reply(f"<@{interaction.user.id}> Marked {self.animeName} as completed.")
 
-        if score is not 0:
+        if score != 0:
             embed = discord.Embed(
                 title=f"Rated: {score} ⭐",
                 color=discord.Color.yellow()
