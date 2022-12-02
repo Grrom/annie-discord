@@ -183,7 +183,7 @@ async def on_message(message):
 
         if "hello" in message.content:
             print(message.author.id)
-            await message.reply("hello there! from dev instance")
+            await message.reply("hello there!")
             return
 
         if "thanks" in message.content:
