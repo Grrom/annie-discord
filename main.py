@@ -18,7 +18,7 @@ load_dotenv()
 client = discord.Bot(intents=discord.Intents.default())
 grroms_id = 567680071628881921
 annie_id = "<@955202644702556260>"
-testing_channel_id = 1028871771736248371
+testing_channel_id = 1048141324307664917
 
 
 @ client.event
@@ -138,6 +138,10 @@ async def recommend(ctx):
 async def on_message(message):
 
     if message.author == client.user:
+        return
+
+    if "testing" in message.content:
+        await message.reply(message.channel.id)
         return
 
     async def is_reply_to_annie():
