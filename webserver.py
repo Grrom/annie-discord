@@ -16,15 +16,9 @@ def home():
 
 
 def ping_grrom():
-    # print("ping grrom")
-    # theloop = asyncio.new_event_loop().create_task(channel.send(
-    #     f"<@{grroms_id}> UptimeBot just pinged me!"))
-
     asyncio.run_coroutine_threadsafe(
         channel.send(
             f"<@{grroms_id}> UptimeBot just pinged me!"), loop)
-
-    # await channel.send(f"<@{grroms_id}> Annie is online!")
 
 
 def run():
