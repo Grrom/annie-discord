@@ -16,11 +16,17 @@ from utils.intention_recognition.load import get_intention
 load_dotenv()
 
 client = discord.Bot(intents=discord.Intents.default())
+grroms_id = 567680071628881921
 annie_id = "<@955202644702556260>"
+testing_channel_id = 1028871771736248371
 
 
 @ client.event
 async def on_ready():
+    channel = discord.utils.get(
+        client.get_all_channels(), id=testing_channel_id)
+    keep_alive(channel, client.loop)
+    await channel.send(f"<@{grroms_id}> Annie is online!")
     print("========================")
     print("|-- Annie is online! --|")
     print("========================")
@@ -176,7 +182,8 @@ async def on_message(message):
             return
 
         if "hello" in message.content:
-            await message.reply("hello there!")
+            print(message.author.id)
+            await message.reply("hello there! from dev instance")
             return
 
         if "thanks" in message.content:
@@ -190,5 +197,4 @@ async def on_message(message):
 
     return
 
-keep_alive()
 client.run(os.getenv("TOKEN"))
