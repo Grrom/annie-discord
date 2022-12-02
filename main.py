@@ -2,6 +2,8 @@ from enum import Enum
 import os
 import discord
 
+from webserver import keep_alive
+
 from discord.enums import MessageType
 
 from dotenv import load_dotenv
@@ -188,4 +190,5 @@ async def on_message(message):
 
     return
 
+keep_alive()
 client.run(os.getenv("TOKEN"))
