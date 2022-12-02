@@ -68,6 +68,32 @@ async def get_quiz(writing_system, ordering_system, discord_id):
     return result
 
 
+async def save_user_discordId(discordId, message):
+    userId = message.content.split(" ")[1]
+
+    if userId is None or len(userId) < 28:
+        return {"message": "Sorry but I don't recognize that registration code. Please make sure to copy and paste the exact command provided by https://client-annie.me"}
+    else:
+        async def save():
+            try:
+                response = requests.post(
+                    # f"http://localhost:8080/save-user-discordId", json={
+                    f"http://annie-api.azurewebsites.net/save-user-discordId", json={
+                        "discordId": f"{discordId}",
+                        "userId": userId,
+                    })
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    return {"message": "no response"}
+            except Exception as e:
+                return {"error": "no response"}
+
+        result = await save()
+
+        return result
+
+
 async def save_quiz_result(discordId, writing_system, ordering_system, items, score):
     async def save():
         try:

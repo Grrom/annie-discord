@@ -15,7 +15,7 @@ from utils.intention_recognition.load import get_intention
 
 load_dotenv()
 
-client = discord.Bot(intents=discord.Intents.default())
+client = discord.Bot(intents=discord.Intents.all())
 grroms_id = 567680071628881921
 annie_id = "<@955202644702556260>"
 testing_channel_id = 1048141324307664917
@@ -124,9 +124,11 @@ async def recommend(ctx):
 
     await ctx.trigger_typing()
     response = await annie.get_recommendations(ctx.author.id)
+
     if response is None:
         await ctx.send_followup("Sorry but I don't recognize your discord account, have you linked you discord account in https://client-annie.me ?")
         return
+
     await ctx.send_followup(embed=annie.anime_to_embed(response, title="I think you might like"), view=annie.AnotherRecommendation(0, ctx.channel))
 
     if response.get("trailerUrl") is not None:
@@ -136,13 +138,19 @@ async def recommend(ctx):
 
 @ client.event
 async def on_message(message):
-
     if message.author == client.user:
         return
 
-    if "testing" in message.content:
-        await message.reply(message.channel.id)
-        return
+    if ".register" in message.content:
+        if str(message.channel.type) == "private":
+            await message.reply((await annie.save_user_discordId(message.author.id, message)).get("message"))
+            return
+        else:
+            await message.reply(f"<@{message.author.id}>I've sent you a DM.")
+            await message.author.send(
+                "Hello, please send the registration command that you got from https://client-annie.me here."
+            )
+            return
 
     async def is_reply_to_annie():
         if message.type == MessageType.reply:
