@@ -3,6 +3,7 @@ import os
 import discord
 
 from webserver import keep_alive
+from webserver import stop_monitoring
 
 from discord.enums import MessageType
 
@@ -17,6 +18,7 @@ load_dotenv()
 
 client = discord.Bot(intents=discord.Intents.all())
 grroms_id = 567680071628881921
+sudoers = [grroms_id]
 annie_id = "<@955202644702556260>"
 testing_channel_id = 1048141324307664917
 
@@ -26,7 +28,7 @@ async def on_ready():
     channel = discord.utils.get(
         client.get_all_channels(), id=testing_channel_id)
     keep_alive(channel, client.loop)
-    await channel.send(f"<@{grroms_id}> Annie is online!")
+    # await channel.send(f"<@{grroms_id}> Annie is online!")
     print("========================")
     print("|-- Annie is online! --|")
     print("========================")
@@ -139,6 +141,15 @@ async def recommend(ctx):
 @ client.event
 async def on_message(message):
     if message.author == client.user:
+        return
+
+    if message.content.split(" ")[0] == "sudo":
+        if message.author.id in sudoers:
+            if "stfu" in message.content:
+                stop_monitoring()
+                await message.reply("logging has been disabled. It wil automatically re-enable the next time the server restarts.")
+        else:
+            await message.reply("Sorry you are not in the sudoers list.")
         return
 
     if ".register" in message.content:

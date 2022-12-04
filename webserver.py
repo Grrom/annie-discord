@@ -8,10 +8,13 @@ grroms_id = 567680071628881921
 channel = None
 loop = None
 
+monitoring_enabled = True
+
 
 @app.route("/")
 def home():
-    ping_grrom()
+    if monitoring_enabled:
+        ping_grrom()
     return "Hello Annie here!"
 
 
@@ -33,3 +36,9 @@ def keep_alive(theChannel, theLoop):
 
     t = Thread(target=run)
     t.start()
+    return t
+
+
+def stop_monitoring():
+    global monitoring_enabled
+    monitoring_enabled = False
