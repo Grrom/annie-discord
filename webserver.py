@@ -39,6 +39,6 @@ def keep_alive(theChannel, theLoop):
     return t
 
 
-def stop_monitoring():
+def stop_monitoring(is_enabled):
     global monitoring_enabled
-    monitoring_enabled = False
+    monitoring_enabled = is_enabled

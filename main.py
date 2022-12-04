@@ -146,8 +146,11 @@ async def on_message(message):
     if message.content.split(" ")[0] == "sudo":
         if message.author.id in sudoers:
             if "stfu" in message.content:
-                stop_monitoring()
-                await message.reply("logging has been disabled. It wil automatically re-enable the next time the server restarts.")
+                stop_monitoring(False)
+                await message.reply("Monitoring has been disabled. It wil automatically re-enable the next time the server restarts.")
+            if "logging" in message.content:
+                stop_monitoring(True)
+                await message.reply("Monitoring has been re-enabled.")
         else:
             await message.reply("Sorry you are not in the sudoers list.")
         return
