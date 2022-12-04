@@ -143,7 +143,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.split(" ")[0] == "sudo":
+    if message.content.split(" ")[0] == "suwudo":
         if message.author.id in sudoers:
             if "stfu" in message.content:
                 stop_monitoring(False)
