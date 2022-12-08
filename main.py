@@ -27,7 +27,7 @@ testing_channel_id = 1048141324307664917
 async def on_ready():
     channel = discord.utils.get(
         client.get_all_channels(), id=testing_channel_id)
-    # keep_alive(channel, client.loop)
+    keep_alive(channel, client.loop)
     await channel.send(f"<@{grroms_id}> Annie is online!")
     print("========================")
     print("|-- Annie is online! --|")

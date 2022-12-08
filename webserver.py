@@ -13,8 +13,8 @@ monitoring_enabled = True
 
 @app.route("/")
 def home():
-    if monitoring_enabled:
-        ping_grrom()
+    # if monitoring_enabled:
+    #     ping_grrom()
     return "Hello Annie here!"
 
 
