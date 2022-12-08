@@ -27,7 +27,7 @@ testing_channel_id = 1048141324307664917
 async def on_ready():
     channel = discord.utils.get(
         client.get_all_channels(), id=testing_channel_id)
-    keep_alive(channel, client.loop)
+    # keep_alive(channel, client.loop)
     await channel.send(f"<@{grroms_id}> Annie is online!")
     print("========================")
     print("|-- Annie is online! --|")
@@ -143,17 +143,17 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.split(" ")[0] == "suwudo":
-        if message.author.id in sudoers:
-            if "stfu" in message.content:
-                stop_monitoring(False)
-                await message.reply("Monitoring has been disabled. It wil automatically re-enable the next time the server restarts.")
-            if "logging" in message.content:
-                stop_monitoring(True)
-                await message.reply("Monitoring has been re-enabled.")
-        else:
-            await message.reply("Sorry you are not in the sudoers list.")
-        return
+    # if message.content.split(" ")[0] == "suwudo":
+    #     if message.author.id in sudoers:
+    #         if "stfu" in message.content:
+    #             stop_monitoring(False)
+    #             await message.reply("Monitoring has been disabled. It wil automatically re-enable the next time the server restarts.")
+    #         if "logging" in message.content:
+    #             stop_monitoring(True)
+    #             await message.reply("Monitoring has been re-enabled.")
+    #     else:
+    #         await message.reply("Sorry you are not in the sudoers list.")
+    #     return
 
     if ".register" in message.content:
         if str(message.channel.type) == "private":
